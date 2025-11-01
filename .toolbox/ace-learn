@@ -1,0 +1,287 @@
+#!/usr/bin/env node
+
+/**
+ * ACE Learning Toolbox Script
+ * 
+ * Integrates with the full ACE framework:
+ * - Simple mode: Quick pattern extraction from git/build/test
+ * - Full mode: Runs Reflector → Curator pipeline
+ * 
+ * Usage:
+ *   ace-learn [dir: /path/to/project] [mode: simple|full]
+ */
+
+import fs from 'fs';
+import { execSync, spawnSync } from 'child_process';
+import path from 'path';
+import { createHash } from 'crypto';
+
+const action = process.env.TOOLBOX_ACTION;
+
+if (action === 'describe') {
+  process.stdout.write([
+    'name: ace-learn',
+    'description: Extract patterns from recent work and update AGENTS.md with ACE learnings',
+    'dir: string the workspace directory (optional, defaults to current)',
+    'mode: string learning mode - "simple" for quick patterns, "full" for Reflector+Curator (default: auto-detect)',
+  ].join('\n'));
+} else if (action === 'execute') {
+  // Read parameters from stdin
+  const input = fs.readFileSync(0, 'utf-8');
+  const dirMatch = input.match(/dir: (.+)/);
+  const modeMatch = input.match(/mode: (simple|full)/);
+  
+  const workDir = dirMatch ? dirMatch[1].trim() : process.cwd();
+  const mode = modeMatch ? modeMatch[1] : 'auto';
+  
+  process.chdir(workDir);
+  
+  console.log('🧠 ACE Learning Cycle Starting...\n');
+  console.log(`📂 Working directory: ${workDir}`);
+  
+  // Auto-detect mode
+  let learningMode = mode;
+  if (mode === 'auto') {
+    const hasAgents = fs.existsSync(path.join(workDir, 'agents', 'Reflector.ts')) &&
+                     fs.existsSync(path.join(workDir, 'agents', 'Curator.ts'));
+    const hasDist = fs.existsSync(path.join(workDir, 'dist', 'agents'));
+    
+    learningMode = (hasAgents && hasDist) ? 'full' : 'simple';
+    console.log(`🔍 Auto-detected mode: ${learningMode}\n`);
+  }
+  
+  if (learningMode === 'full') {
+    runFullMode(workDir);
+  } else {
+    runSimpleMode(workDir);
+  }
+}
+
+/**
+ * Full ACE mode: Reflector → Curator pipeline
+ */
+function runFullMode(workDir) {
+  console.log('🚀 Running Full ACE Pipeline\n');
+  
+  // Check for execution traces
+  const tracesPath = path.join(workDir, 'logs', 'execution_traces.jsonl');
+  if (!fs.existsSync(tracesPath)) {
+    console.log('⚠️  No execution traces found');
+    console.log('   Falling back to simple mode...\n');
+    runSimpleMode(workDir);
+    return;
+  }
+  
+  // Check if traces are empty
+  const tracesContent = fs.readFileSync(tracesPath, 'utf8').trim();
+  if (!tracesContent) {
+    console.log('⚠️  Execution traces file is empty');
+    console.log('   Falling back to simple mode...\n');
+    runSimpleMode(workDir);
+    return;
+  }
+  
+  // Run ace-learn-cycle script
+  const scriptPath = path.join(workDir, 'scripts', 'ace-learn-cycle.ts');
+  
+  if (!fs.existsSync(scriptPath)) {
+    console.log('⚠️  ace-learn-cycle.ts not found');
+    console.log('   Falling back to simple mode...\n');
+    runSimpleMode(workDir);
+    return;
+  }
+  
+  console.log('📊 Step 1: Reflector analyzing execution traces...');
+  console.log('📝 Step 2: Curator processing insights...\n');
+  
+  try {
+    const result = spawnSync('npx', ['tsx', scriptPath], {
+      cwd: workDir,
+      stdio: 'inherit',
+      encoding: 'utf8'
+    });
+    
+    if (result.status === 0) {
+      console.log('\n✅ Full ACE pipeline completed successfully!\n');
+    } else {
+      console.log('\n⚠️  ACE pipeline had issues, falling back to simple mode...\n');
+      runSimpleMode(workDir);
+    }
+  } catch (error) {
+    console.error('❌ Error running ACE pipeline:', error.message);
+    console.log('   Falling back to simple mode...\n');
+    runSimpleMode(workDir);
+  }
+}
+
+/**
+ * Simple mode: Quick pattern extraction
+ */
+function runSimpleMode(workDir) {
+  console.log('⚡ Running Simple Pattern Extraction\n');
+  
+  // Step 1: Gather context
+  console.log('📊 Gathering context...');
+  let recentCommits = '';
+  let patterns = [];
+  
+  try {
+    recentCommits = execSync('git log -5 --oneline --no-decorate', { encoding: 'utf8' });
+    console.log(`   Found ${recentCommits.split('\n').filter(Boolean).length} recent commits`);
+  } catch (e) {
+    console.log('   No git history available');
+  }
+  
+  // Step 2: Analyze build/test patterns
+  console.log('🔍 Analyzing patterns...');
+  
+  // Check for package.json scripts
+  const packageJsonPath = path.join(workDir, 'package.json');
+  let hasTypeScript = false;
+  let buildCommand = null;
+  let testCommand = null;
+  
+  if (fs.existsSync(packageJsonPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      hasTypeScript = pkg.devDependencies?.typescript || pkg.dependencies?.typescript;
+      buildCommand = pkg.scripts?.build;
+      testCommand = pkg.scripts?.test;
+    } catch (e) {
+      // Ignore JSON parse errors
+    }
+  }
+  
+  // Try build
+  if (buildCommand) {
+    console.log('   Running build...');
+    try {
+      execSync('npm run build', { stdio: 'pipe', encoding: 'utf8' });
+      console.log('   ✓ Build passed');
+    } catch (e) {
+      const buildErrors = e.stderr?.toString() || e.stdout?.toString() || '';
+      console.log('   ⚠ Build had errors');
+      
+      // Extract TypeScript patterns
+      if (buildErrors.includes('Cannot find module') && buildErrors.includes('.js')) {
+        patterns.push({
+          section: 'TypeScript Patterns',
+          content: 'TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution'
+        });
+      }
+      if (buildErrors.includes('Type') && buildErrors.includes('not assignable')) {
+        patterns.push({
+          section: 'TypeScript Patterns',
+          content: 'TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early'
+        });
+      }
+      if (buildErrors.includes('already declared') || buildErrors.includes('Duplicate')) {
+        patterns.push({
+          section: 'Build & Test Patterns',
+          content: 'Duplicate declaration errors indicate conflicting imports - Check for circular dependencies or multiple type definitions'
+        });
+      }
+    }
+  }
+  
+  // Try tests
+  if (testCommand) {
+    console.log('   Running tests...');
+    try {
+      execSync('npm test -- --run 2>&1', { stdio: 'pipe', encoding: 'utf8' });
+      console.log('   ✓ Tests passed');
+    } catch (e) {
+      const testErrors = e.stderr?.toString() || e.stdout?.toString() || '';
+      console.log('   ⚠ Tests had errors');
+      
+      if (testErrors.includes('timeout') || testErrors.includes('Timeout')) {
+        patterns.push({
+          section: 'Build & Test Patterns',
+          content: 'Test timeout detected - Check for infinite loops, missing async/await, or increase timeout threshold'
+        });
+      }
+      if (testErrors.includes('ECONNREFUSED') || testErrors.includes('connection refused')) {
+        patterns.push({
+          section: 'Build & Test Patterns',
+          content: 'Connection refused in tests - Ensure test server is started before running integration tests'
+        });
+      }
+    }
+  }
+  
+  // Analyze git commit messages for patterns
+  if (recentCommits) {
+    const commits = recentCommits.toLowerCase();
+    if (commits.includes('fix:') && commits.includes('import')) {
+      patterns.push({
+        section: 'Architecture Patterns',
+        content: 'Frequent import fixes detected - Consider establishing import conventions and using import aliases'
+      });
+    }
+  }
+  
+  // Step 3: Update AGENTS.md
+  if (patterns.length > 0) {
+    console.log(`\n✨ Found ${patterns.length} new pattern(s):\n`);
+    
+    const agentsPath = path.join(workDir, 'AGENTS.md');
+    if (!fs.existsSync(agentsPath)) {
+      console.log('⚠️  AGENTS.md not found, creating it...');
+      fs.writeFileSync(agentsPath, `# Project Guide\n\n## Learned Patterns (ACE-managed)\n<!-- ACE learns patterns here -->\n\n### Build & Test Patterns\n\n### TypeScript Patterns\n\n### Architecture Patterns\n`);
+    }
+    
+    let content = fs.readFileSync(agentsPath, 'utf8');
+    let updated = false;
+    
+    for (const pattern of patterns) {
+      // Check if pattern already exists
+      if (content.includes(pattern.content)) {
+        console.log(`  ⊘ ${pattern.content.substring(0, 70)}... (already exists)`);
+        continue;
+      }
+      
+      console.log(`  • [${pattern.section}] ${pattern.content.substring(0, 70)}...`);
+      
+      // Find the section
+      const sectionRegex = new RegExp(`### ${pattern.section}\\s*\n`, 'i');
+      const sectionMatch = content.match(sectionRegex);
+      
+      if (sectionMatch) {
+        const sectionIndex = content.indexOf(sectionMatch[0]);
+        const insertIndex = sectionIndex + sectionMatch[0].length;
+        
+        // Generate bullet ID
+        const bulletId = generateBulletId(pattern.content);
+        const bullet = `\n[Bullet #${bulletId}, helpful:0, harmful:0] ${pattern.content}\n`;
+        
+        content = content.slice(0, insertIndex) + bullet + content.slice(insertIndex);
+        updated = true;
+      } else {
+        console.log(`    ⚠ Section "${pattern.section}" not found in AGENTS.md`);
+      }
+    }
+    
+    if (updated) {
+      fs.writeFileSync(agentsPath, content);
+      console.log('\n✅ Updated AGENTS.md');
+    } else {
+      console.log('\n⚪ No new patterns added (all existing or missing sections)');
+    }
+  } else {
+    console.log('\n✓ No new patterns detected - all good!');
+  }
+  
+  if (recentCommits) {
+    console.log('\n📝 Recent commits:');
+    console.log(recentCommits.split('\n').slice(0, 3).join('\n'));
+  }
+  
+  console.log('\n🎓 Learning cycle complete!\n');
+}
+
+/**
+ * Generate an 8-character bullet ID from content
+ */
+function generateBulletId(content) {
+  return createHash('md5').update(content).digest('hex').substring(0, 8);
+}
