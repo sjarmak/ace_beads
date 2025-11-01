@@ -48,6 +48,7 @@ describe('Curator', () => {
         confidence: 0.9,
         onlineEligible: true,
         metaTags: ['tsc'],
+        delta: "Mock delta",
       },
       {
         id: 'insight-2',
@@ -60,6 +61,7 @@ describe('Curator', () => {
         confidence: 0.5,
         onlineEligible: false,
         metaTags: [],
+        delta: "Mock delta",
       },
     ];
 
@@ -86,6 +88,7 @@ describe('Curator', () => {
         confidence: 0.85,
         onlineEligible: true,
         metaTags: ['tsc', 'module'],
+        delta: "Mock delta",
       },
     ];
 
@@ -115,6 +118,7 @@ describe('Curator', () => {
       confidence: 0.9,
       onlineEligible: true,
       metaTags: ['tsc'],
+        delta: "Mock delta",
     }));
 
     await writeFile(testInsightsPath, insights.map((i) => JSON.stringify(i)).join('\n'));
@@ -139,6 +143,7 @@ describe('Curator', () => {
         confidence: 0.85,
         onlineEligible: true,
         metaTags: ['tsc', 'type'],
+        delta: "Mock delta",
       },
       {
         id: 'insight-test',
@@ -151,6 +156,7 @@ describe('Curator', () => {
         confidence: 0.9,
         onlineEligible: true,
         metaTags: ['vitest', 'test'],
+        delta: "Mock delta",
       },
     ];
 
@@ -184,6 +190,7 @@ describe('Curator', () => {
         confidence: 0.85,
         onlineEligible: true,
         metaTags: ['tsc'],
+        delta: "Mock delta",
       },
       {
         id: 'insight-2',
@@ -196,6 +203,7 @@ describe('Curator', () => {
         confidence: 0.9,
         onlineEligible: true,
         metaTags: ['tsc'],
+        delta: "Mock delta",
       },
     ];
 
@@ -235,6 +243,7 @@ describe('Curator', () => {
         confidence: 0.85,
         onlineEligible: true,
         metaTags: ['vitest'],
+        delta: "Mock delta",
       },
     ];
 
@@ -299,6 +308,7 @@ describe('Curator', () => {
         confidence: 0.81,
         onlineEligible: true,
         metaTags: [],
+        delta: "Mock delta",
       },
       {
         id: 'insight-high',
@@ -311,6 +321,7 @@ describe('Curator', () => {
         confidence: 0.95,
         onlineEligible: true,
         metaTags: [],
+        delta: "Mock delta",
       },
       {
         id: 'insight-medium',
@@ -323,6 +334,7 @@ describe('Curator', () => {
         confidence: 0.88,
         onlineEligible: true,
         metaTags: [],
+        delta: "Mock delta",
       },
     ];
 
@@ -350,6 +362,7 @@ describe('Curator', () => {
         confidence: 0.85,
         onlineEligible: true,
         metaTags: ['tsc'],
+        delta: "Mock delta",
       },
     ];
 
@@ -379,6 +392,7 @@ describe('Curator', () => {
         confidence: 0.85,
         onlineEligible: true,
         metaTags: ['discovery', 'meta-pattern'],
+        delta: "Mock delta",
       },
     ];
 

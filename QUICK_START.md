@@ -7,9 +7,10 @@
 curl -fsSL https://raw.githubusercontent.com/yourusername/ACE_Beads_Amp/main/scripts/create-ace-starter.sh | bash -s your-project-dir
 ```
 
-**One command to use:**
+**Two commands to use:**
 ```bash
-npm run ace-learn  # After completing work
+npm run ace-learn   # After completing work
+ace-review          # Periodically clean up AGENTS.md
 ```
 
 **That's it.**
@@ -49,6 +50,9 @@ npm run ace-learn
 
 # 3. Check what was learned
 tail AGENTS.md
+
+# 4. Periodically review for duplicates
+ace-review
 ```
 
 ## How It Actually Works

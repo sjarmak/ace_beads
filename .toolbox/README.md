@@ -21,6 +21,10 @@ export AMP_TOOLBOX="/path/to/your-project/.toolbox"
 
 Extract patterns from recent work and update AGENTS.md with learnings.
 
+### ace-review
+
+Review AGENTS.md for duplicate bullets and archival candidates. Generates cleanup reports with token savings estimates.
+
 **Modes:**
 
 - **Auto** (default): Detects whether to use simple or full mode

@@ -44,3 +44,42 @@ export interface CLIError {
   message: string;
   details?: any;
 }
+
+// ACE Framework Types
+export interface ACESession {
+  id: string;
+  beadId: string;
+  startTime: string;
+  endTime?: string;
+  status: 'active' | 'completed' | 'failed';
+  traces: ExecutionTrace[];
+}
+
+export interface ExecutionTrace {
+  timestamp: string;
+  tool: string;
+  command?: string;
+  result: ExecutionResult;
+  discoveredIssues: string[]; // Bead IDs discovered during this execution
+}
+
+export interface Insight {
+  id: string;
+  sessionId: string;
+  pattern: string;
+  description: string;
+  evidence: string[];
+  confidence: number;
+  bulletId?: string; // If this insight led to a bullet
+  createdAt: string;
+}
+
+export interface Bullet {
+  id: string;
+  pattern: string;
+  description: string;
+  helpful: number;
+  harmful: number;
+  createdAt: string;
+  sources: string[]; // Insight IDs that contributed to this bullet
+}

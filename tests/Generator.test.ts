@@ -5,7 +5,7 @@ import { ExecutionResult } from '../mcp/types.js';
 import { join } from 'path';
 
 describe('Generator', () => {
-  const testDir = join(process.cwd(), 'test-temp');
+  const testDir = join(process.cwd(), 'test-temp-generator');
   const testKnowledgePath = join(testDir, 'AGENT.md');
   const testTracePath = join(testDir, 'execution_traces.jsonl');
 

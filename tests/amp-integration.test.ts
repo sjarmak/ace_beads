@@ -1,23 +1,50 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { BeadsClient } from '../mcp/beads-client.js';
 import { readFile, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
+import { resolve } from 'path';
 
 describe('Amp Thread Integration', () => {
   let client: BeadsClient;
-  const testMetadataPath = '/Users/sjarmak/ACE_Beads_Amp/.beads/amp_metadata.jsonl';
-  const testNotificationPath = '/Users/sjarmak/ACE_Beads_Amp/amp_notifications.jsonl';
+  const testMetadataPath = resolve(process.cwd(), '.beads/amp_metadata_integration.jsonl');
+  const testNotificationPath = resolve(process.cwd(), 'amp_notifications_integration.jsonl');
   let originalEnv: NodeJS.ProcessEnv;
   let createdBeadIds: string[] = [];
 
-  beforeEach(() => {
-    client = new BeadsClient();
+  beforeAll(() => {
+    // Save original environment at suite level
     originalEnv = { ...process.env };
+  });
+
+  afterAll(() => {
+    // Restore environment at suite level
+    process.env = { ...originalEnv };
+  });
+
+  beforeEach(() => {
+    // Clean environment before each test
+    delete process.env.AMP_THREAD_ID;
+    delete process.env.AMP_WORKSPACE_ID;
+    delete process.env.ACE_ROLE;
+    delete process.env.AMP_MAIN_THREAD_ID;
+    delete process.env.AMP_PARENT_THREAD_ID;
+    delete process.env.AMP_HANDOFF_GOAL;
+    
+    client = new BeadsClient({
+      metadataPath: testMetadataPath,
+      notificationPath: testNotificationPath,
+    });
     createdBeadIds = [];
   });
 
   afterEach(async () => {
-    process.env = originalEnv;
+    // Clean environment after each test
+    delete process.env.AMP_THREAD_ID;
+    delete process.env.AMP_WORKSPACE_ID;
+    delete process.env.ACE_ROLE;
+    delete process.env.AMP_MAIN_THREAD_ID;
+    delete process.env.AMP_PARENT_THREAD_ID;
+    delete process.env.AMP_HANDOFF_GOAL;
     
     // Clean up created beads
     for (const beadId of createdBeadIds) {
@@ -26,6 +53,14 @@ describe('Amp Thread Integration', () => {
       } catch (error) {
         // Ignore cleanup errors
       }
+    }
+    
+    // Clean up test files
+    if (existsSync(testNotificationPath)) {
+      await unlink(testNotificationPath).catch(() => {});
+    }
+    if (existsSync(testMetadataPath)) {
+      await unlink(testMetadataPath).catch(() => {});
     }
   });
 

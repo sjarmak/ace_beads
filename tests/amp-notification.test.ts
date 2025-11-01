@@ -1,23 +1,60 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll } from 'vitest';
 import { BeadsClient } from '../mcp/beads-client.js';
 import { readFile, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
+import { resolve } from 'path';
 
 describe('Amp Notification Integration', () => {
-  const notificationPath = '/Users/sjarmak/ACE_Beads_Amp/amp_notifications.jsonl';
+  const notificationPath = resolve(process.cwd(), 'amp_notifications.jsonl');
+  const metadataPath = resolve(process.cwd(), '.beads/amp_metadata.jsonl');
   let beads: BeadsClient;
 
-  beforeEach(() => {
-    beads = new BeadsClient();
-    if (existsSync(notificationPath)) {
-      unlink(notificationPath).catch(() => {});
-    }
-  });
-
-  afterEach(async () => {
+  beforeAll(async () => {
+    // Clean up files before all tests in this suite
     if (existsSync(notificationPath)) {
       await unlink(notificationPath);
     }
+    if (existsSync(metadataPath)) {
+      await unlink(metadataPath);
+    }
+  });
+
+  beforeEach(async () => {
+    // Clear all amp env vars to prevent leakage from other tests
+    delete process.env.AMP_THREAD_ID;
+    delete process.env.AMP_WORKSPACE_ID;
+    delete process.env.ACE_ROLE;
+    delete process.env.AMP_MAIN_THREAD_ID;
+    delete process.env.AMP_PARENT_THREAD_ID;
+    delete process.env.AMP_HANDOFF_GOAL;
+    
+    // Clean up files before each test to ensure isolation
+    if (existsSync(notificationPath)) {
+      await unlink(notificationPath);
+    }
+    if (existsSync(metadataPath)) {
+      await unlink(metadataPath);
+    }
+    
+    beads = new BeadsClient();
+  });
+
+  afterEach(async () => {
+    // Clean up files after each test
+    if (existsSync(notificationPath)) {
+      await unlink(notificationPath);
+    }
+    if (existsSync(metadataPath)) {
+      await unlink(metadataPath);
+    }
+    
+    // Clear environment variables
+    delete process.env.AMP_THREAD_ID;
+    delete process.env.AMP_WORKSPACE_ID;
+    delete process.env.ACE_ROLE;
+    delete process.env.AMP_MAIN_THREAD_ID;
+    delete process.env.AMP_PARENT_THREAD_ID;
+    delete process.env.AMP_HANDOFF_GOAL;
   });
 
   it('should write notification when closing issue with amp_metadata', async () => {

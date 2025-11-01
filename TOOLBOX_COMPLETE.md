@@ -8,7 +8,8 @@ Production-ready Amp toolbox for the ACE framework with intelligent mode detecti
 
 ```
 .toolbox/
-├── ace-learn           # Enhanced production script (287 lines)
+├── ace-learn           # Pattern extraction and learning (287 lines)
+├── ace-review          # Knowledge review and cleanup
 ├── README.md          # Usage documentation
 └── INSTALLATION.md    # Installation guide
 ```
@@ -46,7 +47,8 @@ Generates properly formatted bullets:
 
 ## Usage Examples
 
-### With Amp
+### Learning from Work (ace-learn)
+With Amp:
 ```bash
 export AMP_TOOLBOX="/Users/sjarmak/ACE_Beads_Amp/.toolbox"
 amp "Run ace-learn to extract patterns from my work"
@@ -78,6 +80,33 @@ chmod +x .git/hooks/post-commit
 {
   "scripts": {
     "ace-learn": "printf \"dir: $(pwd)\" | TOOLBOX_ACTION=execute node .toolbox/ace-learn"
+  }
+}
+```
+
+### Knowledge Review (ace-review)
+With Amp:
+```bash
+amp "Run ace-review to analyze AGENTS.md for duplicates"
+```
+
+Standalone:
+```bash
+# Markdown report (default)
+printf "format: markdown" | TOOLBOX_ACTION=execute node .toolbox/ace-review
+
+# JSON output for automation
+printf "format: json" | TOOLBOX_ACTION=execute node .toolbox/ace-review
+
+# Custom path
+printf "agentsPath: /path/to/AGENTS.md\nformat: markdown" | TOOLBOX_ACTION=execute node .toolbox/ace-review
+```
+
+NPM Script:
+```json
+{
+  "scripts": {
+    "ace-review": "printf \"format: markdown\" | TOOLBOX_ACTION=execute node .toolbox/ace-review"
   }
 }
 ```

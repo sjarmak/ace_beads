@@ -34,3 +34,8 @@ Archived 28 duplicate instances with IDs:
 - #ffcf180e, #6a3ee98c, #91b963ba
 
 **Full text:** TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+
+## Archived 2025-11-01T17:46:40.344Z
+
+[Bullet #test-harmful-1, helpful:1, harmful:3] This advice is harmful - Should be archived
+[Bullet #test-harmful-2, helpful:0, harmful:2] This also harmful - Should be archived

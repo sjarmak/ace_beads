@@ -1,5 +1,5 @@
 import { BeadsClient, BeadIssue } from '../mcp/beads-client.js';
-import { readFile, appendFile } from 'fs/promises';
+import { readFile, appendFile, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { ExecutionResult } from '../mcp/types.js';
 
@@ -182,6 +182,10 @@ export class Generator {
     console.log(`[Generator] Discovered issues: ${this.currentTrace.discovered_issues.length}`);
 
     const completedTrace = this.currentTrace;
+    
+    // Update bullet counters in AGENTS.md
+    await this.updateBulletCounters(completedTrace);
+    
     this.currentTrace = null;
 
     return completedTrace;
@@ -198,7 +202,8 @@ export class Generator {
   private async loadKnowledgeBullets(): Promise<KnowledgeBullet[]> {
     try {
       const content = await readFile(this.knowledgeBasePath, 'utf-8');
-      const bulletRegex = /\[Bullet #(\S+), helpful:(\d+), harmful:(\d+)\] (.+)/g;
+      // Updated regex to handle optional ", Aggregated from X instances" suffix
+      const bulletRegex = /\[Bullet #(\S+), helpful:(\d+), harmful:(\d+)(?:, [^\]]+)?\] (.+)/g;
       const bullets: KnowledgeBullet[] = [];
 
       let match;
@@ -220,5 +225,43 @@ export class Generator {
   private async writeExecutionTrace(trace: ExecutionTrace): Promise<void> {
     await appendFile(this.executionTracePath, JSON.stringify(trace) + '\n');
     console.log(`[Generator] Wrote execution trace to ${this.executionTracePath}`);
+  }
+
+  private async updateBulletCounters(trace: ExecutionTrace): Promise<void> {
+    try {
+      let content = await readFile(this.knowledgeBasePath, 'utf-8');
+      
+      // Count helpful and harmful feedback for each bullet
+      const feedbackCounts = new Map<string, { helpful: number; harmful: number }>();
+      for (const feedback of trace.bullets_consulted) {
+        if (!feedbackCounts.has(feedback.bullet_id)) {
+          feedbackCounts.set(feedback.bullet_id, { helpful: 0, harmful: 0 });
+        }
+        const counts = feedbackCounts.get(feedback.bullet_id)!;
+        if (feedback.feedback === 'helpful') {
+          counts.helpful++;
+        } else if (feedback.feedback === 'harmful') {
+          counts.harmful++;
+        }
+      }
+      
+      // Update each bullet's counters
+      for (const [bulletId, delta] of feedbackCounts) {
+        const bulletRegex = new RegExp(
+          `(\\[Bullet #${bulletId}, helpful:)(\\d+)(, harmful:)(\\d+)((?:, [^\\]]+)?\\])`,
+          'g'
+        );
+        
+        content = content.replace(bulletRegex, (match, p1, helpful, p3, harmful, p5) => {
+          const newHelpful = parseInt(helpful) + delta.helpful;
+          const newHarmful = parseInt(harmful) + delta.harmful;
+          return `${p1}${newHelpful}${p3}${newHarmful}${p5}`;
+        });
+      }
+      
+      await writeFile(this.knowledgeBasePath, content, 'utf-8');
+    } catch (error) {
+      console.error('[Generator] Failed to update bullet counters:', error);
+    }
   }
 }

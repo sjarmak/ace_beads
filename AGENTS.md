@@ -161,104 +161,96 @@ npm run lint
 npm run typecheck
 ```
 
-## Learned Patterns (ACE-managed)
+## Project-Specific Learned Patterns (ACE-managed)
 <!-- This section is managed by the ACE Curator -->
 <!-- Format: [Bullet #ID, helpful:N, harmful:M] Pattern description -->
-<!-- Bullets accumulate over time and are never compressed -->
+<!-- General patterns belong in ~/AGENTS.md, only ACE_Beads_Amp-specific patterns here -->
 
-### Build & Test Patterns
-<!-- Curator adds build/test insights here -->
+### ACE Framework Patterns
+<!-- Patterns specific to ACE implementation -->
 
-[Bullet #88f22305, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #8efa09af, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #dba868d9, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #1b053876, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #013e4f93, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #806ffa28, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #9dee6272, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #9026db05, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #e8805e9b, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #5d35cd76, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #b8f32df6, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #5af78522, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #dc57b44a, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #ad7fdd59, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #3d3cf3fb, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #45fec16a, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #dc3dcb36, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #261b3db0, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #bcee9c08, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #f80da345, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #8daa172a, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #c1375286, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #dff8a895, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #21033da2, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #a5d94bb8, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
-[Bullet #041e4d58, helpful:0, harmful:0] Always validate user input before processing - Implement input validation at API boundaries to prevent malformed data from entering the system
+### Beads Integration Patterns
+<!-- Patterns about working with Beads issue tracker -->
+
+### MCP Server Patterns
+<!-- Patterns specific to MCP server implementation -->
+
 ### TypeScript Patterns
-<!-- Curator adds TypeScript-specific insights here -->
+<!-- TypeScript-specific patterns for this project -->
 
-[Bullet #c080e220, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #00db9748, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #0b74959e, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #0cdb5a08, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #dd6e0978, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #c01cb80a, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #99619f8c, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #d3753dd3, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #0ad99481, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #0c41f816, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #ed1d31c3, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #9c81bcc4, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #fc449f3e, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #9563e6ce, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #28407243, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #ccdb19ea, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #cc609a2f, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #9c013453, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #ea49074c, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #3835998d, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #6d36ca09, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #4825df70, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #ab4772df, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #1928b22b, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #6ea196dc, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #2e4d6222, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #ccaa0991, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #cea69bd8, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #244baf05, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #02afd7e1, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #0237399d, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #6f5b22a4, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #46fc39e5, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #82b1868b, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #ec875319, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #77850469, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #fac790c0, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #58713f64, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #60e84032, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #3e0cbce3, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #b1588e28, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #d3d18c13, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #7dfdfcf0, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #5fabb26b, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #bfe8ba42, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #f0c47345, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #a971aa75, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #7c767484, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #e0c6d72a, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #91286414, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #e15bf2ff, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #81398da0, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #ffcf180e, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #49163bd6, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #6a3ee98c, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-[Bullet #1ec5a40e, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
-[Bullet #91b963ba, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
-### Dependency Patterns
-<!-- Curator adds patterns about Beads dependency chains here -->
-
-### Architecture Patterns
-<!-- Curator adds high-level design insights here -->
-
-[Bullet #91ca8f2b, helpful:1, harmful:1] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #f3dae788, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #7372075e, helpful:1, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #3fc9abac, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #1eb2f43d, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #f1b96134, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #f6e9b559, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #8b4b7af4, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #5a7ad4f9, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #b8e99fed, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #ea2fa11d, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #1f489aa6, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #7d50f8cf, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #d8e86a5e, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #0842d6b6, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #931cbd95, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #12353eb9, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #72e2e5f1, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #73f1de65, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #b058ff5a, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #2dd1c067, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #4dd0657b, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #6532c4c7, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #94500636, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #04bf257f, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #be6c1798, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #863a6dfa, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #4b37eb81, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #311983e7, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #23ac98d4, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #140b9370, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #efd08a29, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #6d8b6864, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #dd5d9804, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #eb82d1ab, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #de13e3b8, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #972e82ab, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #7993a9ed, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #102480fc, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #4789b3e7, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #f929b27b, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #608bac3c, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #dd219162, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #79d1b0e0, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #1312324a, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #2b5f4c00, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #6ed12ff5, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #3d0d73ee, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #35d9477b, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #37f17664, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #8c333320, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #4f904d6a, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #da5b94da, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #c8f74e7b, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #fbffbab3, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #2743dcae, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #bffd517b, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #391887e6, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #e2d34c91, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #a315bc66, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #1d26d3b8, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #095a7fc8, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #f7b95925, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #19d364a1, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #cb70bb6a, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #a169ed61, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #e96eb921, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #e3b53601, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #32385576, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #7edf069c, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #621b5241, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #d204cd37, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #77e8dbf8, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early
+[Bullet #3b99a833, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #8edde21c, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
+[Bullet #9c0c70fc, helpful:0, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
+[Bullet #4d25d7ad, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early

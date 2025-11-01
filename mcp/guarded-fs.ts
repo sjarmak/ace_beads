@@ -37,11 +37,21 @@ export class GuardedFileSystem {
 
   private matchesPattern(filePath: string, pattern: string): boolean {
     const normalized = filePath.replace(/\\/g, '/');
-    const patternRegex = pattern
-      .replace(/\*\*/g, '.*')
-      .replace(/\*/g, '[^/]*')
-      .replace(/\./g, '\\.');
-    return new RegExp(`^${patternRegex}$`).test(normalized);
+
+    // Escape regex special chars in the original pattern first (including *)
+    let pat = pattern.replace(/[.+^${}()|[\]\\*]/g, '\\$&');
+
+    // Transform glob tokens - ORDER MATTERS!
+    // '**/' -> optional directories (no leading slash required)
+    // After escaping, **/ becomes \*\*/ (note: / is NOT escaped)
+    pat = pat.replace(/\\\*\\\*\//g, '(?:.*/)?');
+    // Standalone '**' at end (like **) -> any chars including slashes  
+    pat = pat.replace(/\\\*\\\*$/g, '.*');
+    // Single '*' -> any chars except slash
+    pat = pat.replace(/\\\*/g, '[^/]*');
+
+    const regex = new RegExp(`^${pat}$`);
+    return regex.test(normalized);
   }
 
   private checkPermission(role: Role, operation: 'read' | 'write', filePath: string): boolean {

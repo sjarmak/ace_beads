@@ -38,7 +38,10 @@ async function testCounterUpdate() {
 
   console.log(`Before: Bullet #91ca8f2b has helpful:${beforeMatch[1]}, harmful:${beforeMatch[2]}`);
 
-  const curator = new Curator('/Users/sjarmak/ACE_Beads_Amp/AGENTS.md');
+  const curator = new Curator(
+    '/Users/sjarmak/ACE_Beads_Amp/logs/insights.jsonl',
+    '/Users/sjarmak/ACE_Beads_Amp/AGENTS.md'
+  );
   
   console.log('\nTesting helpful feedback...');
   await curator['updateBulletCounter']('91ca8f2b', 'helpful');

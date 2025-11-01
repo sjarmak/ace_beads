@@ -47,6 +47,8 @@ export interface Insight {
   confidence: number;
   onlineEligible: boolean;
   metaTags: string[];
+  delta: string;
+  target_bullet_id?: string;
 }
 
 export interface Delta {

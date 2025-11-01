@@ -162,10 +162,14 @@ export class Curator {
 
     await writeFile(this.knowledgePath, lines.join('\n'));
     console.log(`[Curator] Applied delta to section "${delta.section}": ${delta.bullet_id}`);
+    
+    // Trigger deduplication hook after adding new bullet
+    await this.deduplicateAndConsolidate();
   }
 
   private findSectionIndex(lines: string[], sectionName: string): number {
-    return lines.findIndex((line) => line.trim() === `### ${sectionName}`);
+    const wanted = [`## ${sectionName}`, `### ${sectionName}`];
+    return lines.findIndex((line) => wanted.includes(line.trim()));
   }
 
   private findInsertPosition(lines: string[], sectionIndex: number): number {
@@ -201,7 +205,8 @@ export class Curator {
   async loadKnowledgeBullets(): Promise<KnowledgeBullet[]> {
     try {
       const content = await readFile(this.knowledgePath, 'utf-8');
-      const bulletRegex = /\[Bullet #(\S+), helpful:(\d+), harmful:(\d+)\] (.+)/g;
+      // Updated regex to handle optional ", Aggregated from X instances" suffix
+      const bulletRegex = /\[Bullet #(\S+), helpful:(\d+), harmful:(\d+)(?:, [^\]]+)?\] (.+)/g;
       const bullets: KnowledgeBullet[] = [];
 
       let match;
@@ -250,5 +255,112 @@ export class Curator {
 
     await writeFile(this.knowledgePath, lines.join('\n'));
     console.log(`[Curator] Updated bullet ${bulletId} counter: ${feedback}`);
+    
+    // Trigger deduplication hook after update
+    await this.deduplicateAndConsolidate();
+  }
+
+  /**
+   * Deduplication and consolidation hook
+   * Runs after any update to AGENTS.md to find and merge duplicate bullets
+   */
+  async deduplicateAndConsolidate(): Promise<number> {
+    console.log('[Curator] Running deduplication and consolidation...');
+    
+    const bullets = await this.loadKnowledgeBullets();
+    if (bullets.length === 0) {
+      console.log('[Curator] No bullets found, skipping deduplication');
+      return 0;
+    }
+
+    const duplicateGroups = this.findDuplicates(bullets);
+    
+    if (duplicateGroups.length === 0) {
+      console.log('[Curator] No duplicates found');
+      return 0;
+    }
+
+    console.log(`[Curator] Found ${duplicateGroups.length} duplicate groups`);
+    
+    let consolidatedCount = 0;
+    for (const group of duplicateGroups) {
+      await this.consolidateGroup(group);
+      consolidatedCount++;
+    }
+
+    console.log(`[Curator] Consolidated ${consolidatedCount} duplicate groups`);
+    return consolidatedCount;
+  }
+
+  /**
+   * Find duplicate bullets using normalized pattern matching
+   * Returns groups of bullets that are duplicates of each other
+   */
+  private findDuplicates(bullets: KnowledgeBullet[]): KnowledgeBullet[][] {
+    const groups: Map<string, KnowledgeBullet[]> = new Map();
+
+    for (const bullet of bullets) {
+      const normalized = this.normalizePattern(bullet.content);
+      
+      if (!groups.has(normalized)) {
+        groups.set(normalized, []);
+      }
+      groups.get(normalized)!.push(bullet);
+    }
+
+    // Only return groups with 2+ bullets (duplicates)
+    return Array.from(groups.values()).filter(group => group.length > 1);
+  }
+
+  /**
+   * Consolidate a group of duplicate bullets
+   * - Merges helpful/harmful counters
+   * - Keeps the bullet with highest helpful count
+   * - Removes other duplicates
+   */
+  private async consolidateGroup(group: KnowledgeBullet[]): Promise<void> {
+    // Sort by helpful count (descending), then by harmful count (ascending)
+    const sorted = group.sort((a, b) => {
+      if (b.helpful !== a.helpful) return b.helpful - a.helpful;
+      return a.harmful - b.harmful;
+    });
+
+    const winner = sorted[0];
+    const losers = sorted.slice(1);
+
+    // Aggregate counters
+    const totalHelpful = group.reduce((sum, b) => sum + b.helpful, 0);
+    const totalHarmful = group.reduce((sum, b) => sum + b.harmful, 0);
+
+    console.log(`[Curator] Consolidating ${group.length} duplicates:`);
+    console.log(`  Winner: ${winner.id} (helpful:${winner.helpful}, harmful:${winner.harmful})`);
+    console.log(`  Merged: helpful:${totalHelpful}, harmful:${totalHarmful}`);
+
+    // Update file: remove losers, update winner with aggregated counts
+    const content = await readFile(this.knowledgePath, 'utf-8');
+    let lines = content.split('\n');
+
+    // Remove loser bullets
+    for (const loser of losers) {
+      lines = lines.filter(line => !line.includes(`[Bullet #${loser.id},`));
+      console.log(`  Removed: ${loser.id}`);
+    }
+
+    // Update winner with aggregated counts
+    const winnerRegex = new RegExp(
+      `\\[Bullet #${winner.id}, helpful:\\d+, harmful:\\d+(?:, [^\\]]+)?\\] (.+)`
+    );
+
+    for (let i = 0; i < lines.length; i++) {
+      const match = lines[i].match(winnerRegex);
+      if (match) {
+        const bulletContent = match[1];
+        lines[i] = `[Bullet #${winner.id}, helpful:${totalHelpful}, harmful:${totalHarmful}, Aggregated from ${group.length} instances] ${bulletContent}`;
+        console.log(`  Updated: ${winner.id} with aggregated counts`);
+        break;
+      }
+    }
+
+    await writeFile(this.knowledgePath, lines.join('\n'));
   }
 }

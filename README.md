@@ -148,6 +148,24 @@ npm run lint
 npm run typecheck
 \`\`\`
 
+## Toolbox Scripts
+
+ACE includes toolbox scripts for workflow automation:
+
+### ace-learn
+Extracts patterns from recent work and updates AGENTS.md:
+```bash
+amp "Run ace-learn on this project"
+```
+
+### ace-review
+Reviews AGENTS.md for duplicate bullets and archival candidates:
+```bash
+amp "Run ace-review to analyze AGENTS.md"
+```
+
+See [.toolbox/README.md](file:///.toolbox/README.md) for details.
+
 ## Learn More
 
 - [ACE Framework Paper](https://arxiv.org/html/2510.04618v1)

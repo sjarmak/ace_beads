@@ -123,6 +123,7 @@ export class Reflector {
           confidence: this.calculateConfidence(errors, 1),
           onlineEligible: this.isOnlineEligible(this.calculateConfidence(errors, 1)),
           metaTags: [tool, 'error-pattern', trace.outcome],
+          delta: `[Bullet #${randomUUID().slice(0, 8)}] ${pattern} - ${recommendation}`,
         });
       }
     }
@@ -152,6 +153,7 @@ export class Reflector {
       confidence: trace.discovered_issues.length >= 3 ? 0.85 : 0.65,
       onlineEligible: trace.discovered_issues.length >= 3,
       metaTags: ['discovery', 'meta-pattern'],
+      delta: `[Bullet #${randomUUID().slice(0, 8)}] ${pattern} - ${recommendation}`,
     };
   }
 
@@ -179,6 +181,7 @@ export class Reflector {
       confidence: 0.75,
       onlineEligible: false,
       metaTags: ['bullet-feedback', 'review-needed'],
+      delta: `[Bullet #${randomUUID().slice(0, 8)}] ${pattern} - Review these bullets for removal or refinement`,
     };
   }
 
@@ -245,6 +248,7 @@ export class Reflector {
       confidence: this.calculateConfidence(allErrors, beadIds.length),
       onlineEligible: this.isOnlineEligible(this.calculateConfidence(allErrors, beadIds.length)),
       metaTags: ['recurring-error', cluster.signature.toolPattern, `frequency-${cluster.frequency}`],
+      delta: `[Bullet #${randomUUID().slice(0, 8)}] ${pattern} - ${recommendation}`,
     };
   }
 

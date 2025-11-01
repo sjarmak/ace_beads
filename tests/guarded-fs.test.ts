@@ -4,7 +4,7 @@ import { writeFile, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 
 describe('GuardedFileSystem', () => {
-  const testDir = join(process.cwd(), 'test-temp');
+  const testDir = join(process.cwd(), 'test-temp-guarded-fs');
   let gfs: GuardedFileSystem;
 
   beforeEach(async () => {

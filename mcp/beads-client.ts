@@ -1,10 +1,104 @@
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 import { promisify } from 'util';
-import { appendFile } from 'fs/promises';
+import { appendFile, mkdir } from 'fs/promises';
 import { AmpThreadMetadata, BeadNotificationEvent } from './types.js';
 import { randomUUID } from 'crypto';
+import { existsSync } from 'fs';
+import { dirname, resolve } from 'path';
 
 const execAsync = promisify(exec);
+
+// Stub mode for tests - store issues and dependencies in memory
+const isTestMode = process.env.VITEST === 'true' || process.env.NODE_ENV === 'test';
+
+class BeadsStub {
+  private issues: Map<string, BeadIssue> = new Map();
+  private dependencies: BeadDependency[] = [];
+  private counter = 1;
+
+  generateId(): string {
+    return `bd-${this.counter++}`;
+  }
+
+  createIssue(title: string, options: any): BeadIssue {
+    const id = this.generateId();
+    const now = new Date().toISOString();
+    const issue: BeadIssue = {
+      id,
+      title,
+      description: options?.description || '',
+      status: 'open',
+      priority: options?.priority ?? 2,
+      issue_type: options?.type || 'task',
+      created_at: now,
+      updated_at: now,
+      labels: options?.labels || [],
+      assignee: options?.assignee,
+    };
+    this.issues.set(id, issue);
+    return issue;
+  }
+
+  listIssues(filters?: any): BeadIssue[] {
+    let issues = Array.from(this.issues.values());
+    if (filters?.status) {
+      issues = issues.filter(i => i.status === filters.status);
+    }
+    if (filters?.priority !== undefined) {
+      issues = issues.filter(i => i.priority === filters.priority);
+    }
+    if (filters?.type) {
+      issues = issues.filter(i => i.issue_type === filters.type);
+    }
+    return issues;
+  }
+
+  getIssue(id: string): BeadIssue | undefined {
+    return this.issues.get(id);
+  }
+
+  updateIssue(id: string, updates: any): BeadIssue | undefined {
+    const issue = this.issues.get(id);
+    if (!issue) return undefined;
+    
+    if (updates.status) issue.status = updates.status;
+    if (updates.priority !== undefined) issue.priority = updates.priority;
+    if (updates.assignee) issue.assignee = updates.assignee;
+    issue.updated_at = new Date().toISOString();
+    
+    return issue;
+  }
+
+  closeIssue(id: string): BeadIssue | undefined {
+    const issue = this.issues.get(id);
+    if (!issue) return undefined;
+    
+    issue.status = 'closed';
+    issue.closed_at = new Date().toISOString();
+    issue.updated_at = issue.closed_at;
+    
+    return issue;
+  }
+
+  addDependency(source: string, target: string, type: BeadDependency['type']): void {
+    this.dependencies.push({ source, target, type });
+  }
+
+  getDependencyTree(id: string): any {
+    return {
+      id,
+      dependencies: this.dependencies.filter(d => d.source === id || d.target === id),
+    };
+  }
+
+  getDiscoveredIssues(parentId: string): string[] {
+    return this.dependencies
+      .filter(d => d.type === 'discovered-from' && d.target === parentId)
+      .map(d => d.source);
+  }
+}
+
+const stub = new BeadsStub();
 
 export interface BeadIssue {
   id: string;
@@ -28,7 +122,13 @@ export interface BeadDependency {
 }
 
 export class BeadsClient {
-  private readonly ampMetadataPath = '/Users/sjarmak/ACE_Beads_Amp/.beads/amp_metadata.jsonl';
+  private readonly ampMetadataPath: string;
+  private readonly notificationPath: string;
+
+  constructor(options?: { metadataPath?: string; notificationPath?: string }) {
+    this.ampMetadataPath = options?.metadataPath || resolve(process.cwd(), '.beads/amp_metadata.jsonl');
+    this.notificationPath = options?.notificationPath || resolve(process.cwd(), 'amp_notifications.jsonl');
+  }
 
   private captureAmpThreadContext(): AmpThreadMetadata | undefined {
     const threadId = process.env.AMP_THREAD_ID;
@@ -54,11 +154,14 @@ export class BeadsClient {
   }
 
   private async writeNotification(event: BeadNotificationEvent): Promise<void> {
-    const notificationPath = '/Users/sjarmak/ACE_Beads_Amp/amp_notifications.jsonl';
-    await appendFile(notificationPath, JSON.stringify(event) + '\n');
+    await appendFile(this.notificationPath, JSON.stringify(event) + '\n');
   }
 
   private async saveAmpMetadata(beadId: string, metadata: AmpThreadMetadata): Promise<void> {
+    const dir = dirname(this.ampMetadataPath);
+    if (!existsSync(dir)) {
+      await mkdir(dir, { recursive: true });
+    }
     const entry = { bead_id: beadId, ...metadata };
     await appendFile(this.ampMetadataPath, JSON.stringify(entry) + '\n');
   }
@@ -92,6 +195,21 @@ export class BeadsClient {
       dependencies?: { type: string; target: string }[];
     }
   ): Promise<BeadIssue> {
+    if (isTestMode) {
+      const issue = stub.createIssue(title, options);
+      const ampMetadata = this.captureAmpThreadContext();
+      if (ampMetadata) {
+        issue.amp_metadata = ampMetadata;
+        await this.saveAmpMetadata(issue.id, ampMetadata);
+      }
+      if (options?.dependencies && options.dependencies.length > 0) {
+        for (const dep of options.dependencies) {
+          stub.addDependency(issue.id, dep.target, dep.type as any);
+        }
+      }
+      return issue;
+    }
+
     let cmd = `bd create "${title}" --json`;
 
     if (options?.type) cmd += ` -t ${options.type}`;
@@ -125,6 +243,10 @@ export class BeadsClient {
     priority?: number;
     type?: string;
   }): Promise<BeadIssue[]> {
+    if (isTestMode) {
+      return stub.listIssues(filters);
+    }
+
     let cmd = 'bd list --json';
 
     if (filters?.status) cmd += ` --status ${filters.status}`;
@@ -136,6 +258,16 @@ export class BeadsClient {
   }
 
   async getIssue(id: string): Promise<BeadIssue> {
+    if (isTestMode) {
+      const issue = stub.getIssue(id);
+      if (!issue) throw new Error(`Issue ${id} not found`);
+      const ampMetadata = await this.loadAmpMetadata(id);
+      if (ampMetadata) {
+        issue.amp_metadata = ampMetadata;
+      }
+      return issue;
+    }
+
     const { stdout } = await execAsync(`bd show ${id} --json`);
     const result = JSON.parse(stdout.trim());
     const issue = Array.isArray(result) ? result[0] : result;
@@ -156,6 +288,12 @@ export class BeadsClient {
       assignee?: string;
     }
   ): Promise<BeadIssue> {
+    if (isTestMode) {
+      const issue = stub.updateIssue(id, updates);
+      if (!issue) throw new Error(`Issue ${id} not found`);
+      return issue;
+    }
+
     let cmd = `bd update ${id} --json`;
 
     if (updates.status) cmd += ` --status ${updates.status}`;
@@ -170,6 +308,29 @@ export class BeadsClient {
   async closeIssue(id: string, reason?: string): Promise<BeadIssue> {
     const beforeClose = await this.getIssue(id);
     
+    if (isTestMode) {
+      const issue = stub.closeIssue(id);
+      if (!issue) throw new Error(`Issue ${id} not found`);
+      
+      if (beforeClose.amp_metadata) {
+        const event: BeadNotificationEvent = {
+          event_id: randomUUID(),
+          timestamp: new Date().toISOString(),
+          bead_id: issue.id,
+          thread_id: beforeClose.amp_metadata.thread_id,
+          event_type: 'bead_completed',
+          payload: {
+            summary: `Issue ${issue.id} "${issue.title}" completed`,
+            action_required: false,
+          },
+        };
+        await this.writeNotification(event);
+        issue.amp_metadata = beforeClose.amp_metadata;
+      }
+      
+      return issue;
+    }
+
     let cmd = `bd close ${id} --json`;
     if (reason) cmd += ` --reason "${reason}"`;
 
@@ -193,10 +354,12 @@ export class BeadsClient {
       issue.amp_metadata = beforeClose.amp_metadata;
     }
 
-    // Trigger ACE learning cycle in the background (non-blocking)
-    this.triggerACELearningCycle(id).catch((err) => {
-      console.error(`[BeadsClient] ACE learning cycle failed for ${id}:`, err);
-    });
+    // Trigger ACE learning cycle in the background (non-blocking) - skip in test mode
+    if (!isTestMode) {
+      this.triggerACELearningCycle(id).catch((err) => {
+        console.error(`[BeadsClient] ACE learning cycle failed for ${id}:`, err);
+      });
+    }
 
     return issue;
   }
@@ -204,19 +367,33 @@ export class BeadsClient {
   private async triggerACELearningCycle(beadId: string): Promise<void> {
     console.log(`[BeadsClient] Triggering ACE learning cycle for bead ${beadId}...`);
     
-    // Run the learning cycle script in the background
-    exec('npx tsx scripts/ace-learn-cycle.ts', { cwd: '/Users/sjarmak/ACE_Beads_Amp' }, (error, stdout, stderr) => {
-      if (error) {
+    // For E2E tests, run synchronously
+    if (process.env.ACE_E2E_SYNC === 'true') {
+      try {
+        execSync('npx tsx scripts/ace-learn-cycle.ts', { 
+          cwd: '/Users/sjarmak/ACE_Beads_Amp',
+          stdio: 'inherit'
+        });
+        console.log(`[BeadsClient] ACE learning cycle completed synchronously`);
+      } catch (error: any) {
         console.error(`[BeadsClient] ACE learning cycle error: ${error.message}`);
-        return;
+        throw error;
       }
-      if (stderr) {
-        console.error(`[BeadsClient] ACE learning cycle stderr: ${stderr}`);
-      }
-      if (stdout) {
-        console.log(`[BeadsClient] ACE learning cycle output:\n${stdout}`);
-      }
-    });
+    } else {
+      // Run the learning cycle script in the background
+      exec('npx tsx scripts/ace-learn-cycle.ts', { cwd: '/Users/sjarmak/ACE_Beads_Amp' }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`[BeadsClient] ACE learning cycle error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`[BeadsClient] ACE learning cycle stderr: ${stderr}`);
+        }
+        if (stdout) {
+          console.log(`[BeadsClient] ACE learning cycle output:\n${stdout}`);
+        }
+      });
+    }
   }
 
   async getReadyIssues(): Promise<BeadIssue[]> {
@@ -229,15 +406,28 @@ export class BeadsClient {
     target: string,
     type: 'blocks' | 'related' | 'parent-child' | 'discovered-from'
   ): Promise<void> {
+    if (isTestMode) {
+      stub.addDependency(source, target, type);
+      return;
+    }
     await execAsync(`bd dep add ${source} ${target} --type ${type}`);
   }
 
   async getDependencyTree(id: string): Promise<any> {
+    if (isTestMode) {
+      return stub.getDependencyTree(id);
+    }
     const { stdout } = await execAsync(`bd dep tree ${id} --json`);
     return JSON.parse(stdout.trim());
   }
 
   async getDiscoveredIssues(parentId: string): Promise<BeadIssue[]> {
+    if (isTestMode) {
+      const discoveredIds = stub.getDiscoveredIssues(parentId);
+      const allIssues = stub.listIssues();
+      return allIssues.filter(issue => discoveredIds.includes(issue.id));
+    }
+
     const allIssues = await this.listIssues();
     const tree = await this.getDependencyTree(parentId);
 
