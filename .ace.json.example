@@ -4,5 +4,10 @@
   "insightsPath": "logs/insights.jsonl",
   "tracesPath": "logs/execution_traces.jsonl",
   "maxDeltas": 3,
-  "defaultConfidence": 0.8
+  "defaultConfidence": 0.8,
+  "traceRetention": {
+    "maxTracesPerBead": 10,
+    "maxAgeInDays": 30,
+    "archivePath": "logs/archive/execution_traces.archive.jsonl"
+  }
 }

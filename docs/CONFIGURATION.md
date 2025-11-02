@@ -2,6 +2,8 @@
 
 ACE supports flexible configuration through multiple sources with a clear precedence order.
 
+> **Note**: This document covers ACE framework configuration (`.ace.json`). For directory-level Amp client configuration, see [Amp Configuration](#amp-configuration) below.
+
 ## Configuration Precedence
 
 Configuration is loaded in the following order (later sources override earlier ones):
@@ -133,3 +135,257 @@ ace learn --min-confidence 0.7 --max-deltas 10
   "logsDir": ".ace-logs"
 }
 ```
+
+---
+
+## Amp Configuration
+
+The `amp-config` command provides directory-level control of Amp client settings, allowing different Amp configurations per project.
+
+### Overview
+
+When you `cd` into a project directory, ACE can automatically apply project-specific Amp settings (MCP servers, agents, experimental features) to your Amp client configuration.
+
+This solves the problem of:
+- Different projects needing different MCP servers
+- Team-specific Amp settings
+- Environment-specific configurations (dev vs production)
+
+### Quick Start
+
+```bash
+# Create project-specific config
+cat > .amp-config.json << 'EOF'
+{
+  "mcpServers": {
+    "ace-learning-server": {
+      "command": "node",
+      "args": ["/path/to/ace-mcp-server/dist/index.js"]
+    }
+  },
+  "agents": {
+    "planning": true,
+    "testing": false
+  }
+}
+EOF
+
+# Apply to your Amp client
+ace amp-config --apply
+
+# List current config
+ace amp-config --list
+
+# Restore global defaults
+ace amp-config --restore
+```
+
+### Configuration Methods
+
+#### 1. Complete Override (`.amp-config.json`)
+
+Create `.amp-config.json` in any project directory for full Amp configuration override:
+
+```json
+{
+  "mcpServers": {
+    "braingrid": {
+      "url": "https://mcp.braingrid.ai/mcp"
+    },
+    "ace-learning-server": {
+      "command": "node",
+      "args": ["./dist/mcp-server.js"]
+    }
+  },
+  "agents": {
+    "planning": true,
+    "testing": true,
+    "autonomy": false
+  },
+  "experimental": {
+    "librarian": true
+  },
+  "amp": {
+    "dangerouslyAllowAll": false,
+    "updates": {
+      "mode": "manual"
+    }
+  }
+}
+```
+
+**Priority**: `.amp-config.json` completely overrides global Amp settings.
+
+#### 2. MCP Filtering (`.ace.json`)
+
+For simple MCP server filtering without full override, use `.ace.json`:
+
+```json
+{
+  "mcpServers": {
+    "enabled": ["ace-learning-server", "braingrid"],
+    "disabled": ["chrome-devtools"]
+  }
+}
+```
+
+**Note**: This only applies when **no** `.amp-config.json` exists in the directory tree.
+
+### Commands
+
+#### Apply Configuration
+
+```bash
+ace amp-config --apply
+```
+
+Applies the project configuration to your Amp client. Creates a backup before modifying.
+
+#### List Current Configuration
+
+```bash
+ace amp-config --list
+```
+
+Shows the active configuration for the current directory.
+
+```bash
+ace amp-config --list --json
+```
+
+Output as JSON for scripting.
+
+#### Restore Global Defaults
+
+```bash
+ace amp-config --restore
+```
+
+Restores your global Amp configuration from the most recent backup.
+
+### How It Works
+
+1. **Directory Discovery**: Walks up from current directory to find `.amp-config.json`
+2. **Backup**: Creates timestamped backup of global Amp config
+3. **Merge**: Applies project settings on top of global config
+4. **Write**: Updates Amp client configuration file
+
+Supported client paths:
+- `~/.config/amp/settings.json` (Amp)
+- `~/.config/amp/config.json` (Amp fallback)
+- `~/.config/cline/settings.json` (Cline/VS Code)
+- `~/Library/Application Support/Claude/claude_desktop_config.json` (Claude Desktop)
+
+### Auto-Apply on Directory Change
+
+You can set up automatic configuration application when changing directories. See the shell integration scripts:
+
+- `scripts/mcp-auto-apply.sh` - Fish shell integration
+- `scripts/setup-project-mcp.sh` - Project setup helper
+
+### Example Workflows
+
+#### Per-Project MCP Servers
+
+**Project A** (`.amp-config.json`):
+```json
+{
+  "mcpServers": {
+    "database-server": { "url": "..." }
+  }
+}
+```
+
+**Project B** (`.amp-config.json`):
+```json
+{
+  "mcpServers": {
+    "api-server": { "url": "..." }
+  }
+}
+```
+
+When you `cd project-a && ace amp-config --apply`, only `database-server` is available.
+When you `cd project-b && ace amp-config --apply`, only `api-server` is available.
+
+#### Team Configuration
+
+Commit `.amp-config.json` to your repo:
+
+```json
+{
+  "mcpServers": {
+    "company-tools": {
+      "command": "npx",
+      "args": ["@company/mcp-server"]
+    }
+  },
+  "agents": {
+    "planning": true
+  }
+}
+```
+
+All team members get consistent Amp settings when they run `ace amp-config --apply`.
+
+#### Environment-Specific Settings
+
+**Development** (`.amp-config.json`):
+```json
+{
+  "mcpServers": {
+    "dev-tools": { "url": "http://localhost:3000/mcp" }
+  },
+  "agents": {
+    "autonomy": true
+  }
+}
+```
+
+**Production** (separate directory, different `.amp-config.json`):
+```json
+{
+  "mcpServers": {
+    "prod-tools": { "url": "https://api.prod.com/mcp" }
+  },
+  "agents": {
+    "autonomy": false
+  }
+}
+```
+
+### Configuration Schema
+
+`.amp-config.json` supports all Amp settings. Common fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `mcpServers` | object | MCP server definitions (key: server name) |
+| `agents` | object | Agent feature toggles (planning, testing, autonomy, etc.) |
+| `experimental` | object | Experimental feature flags |
+| `amp.dangerouslyAllowAll` | boolean | Allow all tool permissions |
+| `amp.updates.mode` | string | Update mode ("auto", "manual") |
+
+### Tips
+
+1. **Use `.gitignore`** for sensitive configs (API keys, local paths)
+2. **Use `.amp-config.json.example`** to share template configs with team
+3. **Run `--restore`** if something breaks
+4. **Check backups** in `~/.config/amp/*.backup.*` before manual edits
+
+### Troubleshooting
+
+**Config not applying?**
+```bash
+ace amp-config --list --json  # Check what config is detected
+ace amp-config --apply --verbose  # See detailed application logs
+```
+
+**Want to reset?**
+```bash
+ace amp-config --restore  # Restore from latest backup
+```
+
+**Multiple projects conflicting?**
+- Only the nearest `.amp-config.json` up the directory tree applies
+- Use `ace amp-config --list` to see which config is active

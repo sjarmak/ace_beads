@@ -25,7 +25,7 @@ apply_project_config() {
     echo "🔄 Applying MCP config from: $project_dir"
 
     # Change to project directory and run the command
-    (cd "$project_dir" && npm run cli -- mcp-config --apply >/dev/null 2>&1)
+    (cd "$project_dir" && npm run cli -- amp-config --apply >/dev/null 2>&1)
 
     if [[ $? -eq 0 ]]; then
         echo "✅ MCP config applied for project: $(basename "$project_dir")"
@@ -81,7 +81,7 @@ main() {
                 local project_dir="$(dirname "$config_file")"
                 echo "📍 Current project: $(basename "$project_dir")"
                 echo "📁 Config file: $config_file"
-                (cd "$project_dir" && npm run cli -- mcp-config --list)
+                (cd "$project_dir" && npm run cli -- amp-config --list)
             else
                 echo "🏠 No project-specific MCP config found"
             fi

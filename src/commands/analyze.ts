@@ -73,7 +73,11 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
     
     // Analyze each execution result
     for (const exec of trace.execution_results || []) {
-      if (exec.status === 'fail' && exec.errors && exec.errors.length > 0) {
+      // Broaden failure detection to handle various status formats
+      const status = (exec.status || '').toLowerCase();
+      const failStatuses = new Set(['fail', 'failed', 'error']);
+      
+      if (failStatuses.has(status) && exec.errors?.length) {
         // Group errors by pattern
         const errorsByPattern = new Map<string, any[]>();
         
@@ -89,9 +93,7 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
         for (const [pattern, errors] of errorsByPattern) {
           const confidence = calculateConfidence(errors, tracesToAnalyze.length);
           
-          if (options.minConfidence && confidence < options.minConfidence) {
-            continue;
-          }
+          // Don't filter by minConfidence in analyze - let update/Curator decide
           
           const insight: Insight = {
             id: randomUUID(),
@@ -111,7 +113,7 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
               glob: inferGlob(errors.map(e => e.file))
             },
             confidence,
-            onlineEligible: confidence >= 0.8,
+            onlineEligible: true, // Let Curator decide based on confidence
             metaTags: inferTags(exec.runner, errors[0])
           };
           

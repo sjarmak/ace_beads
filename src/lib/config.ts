@@ -19,6 +19,11 @@ const DEFAULT_CONFIG: ACEConfig = {
       reviewThreshold: 0.65,
     },
   },
+  traceRetention: {
+    maxTracesPerBead: 10,
+    maxAgeInDays: 30,
+    archivePath: 'logs/archive/execution_traces.archive.jsonl',
+  },
 };
 
 export function loadConfig(flags: Partial<ACEConfig> = {}, cwd?: string): ACEConfig {

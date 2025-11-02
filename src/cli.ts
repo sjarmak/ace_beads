@@ -13,7 +13,7 @@ import { learnCommand } from './commands/learn.js';
 import { getCommand } from './commands/get.js';
 import { traceListCommand, traceShowCommand } from './commands/trace.js';
 import { beadsHookInstallCommand } from './commands/beads-hook.js';
-import { mcpConfigCommand } from './commands/mcp-config.js';
+import { ampConfigCommand } from './commands/amp-config.js';
 import { statusCommand } from './commands/status.js';
 import { applyCommand } from './commands/apply.js';
 import { sweepCommand } from './commands/sweep.js';
@@ -308,16 +308,16 @@ beadsCmd
   });
 
 program
-  .command('mcp-config')
-  .description('Configure MCP servers for this project')
-  .option('--apply', 'Apply project MCP config to client configuration')
-  .option('--list', 'List current MCP server configuration')
+  .command('amp-config')
+  .description('Manage Amp configuration with directory-level overrides')
+  .option('--apply', 'Apply project config to client configuration')
+  .option('--list', 'List current configuration')
   .option('--restore', 'Restore global default configuration from backup')
   .option('--json', 'Output in JSON format')
   .option('--verbose', 'Show detailed output')
   .action(async (options) => {
     try {
-      mcpConfigCommand(options);
+      ampConfigCommand(options);
     } catch (error) {
       if (options.json) {
         console.error(JSON.stringify({

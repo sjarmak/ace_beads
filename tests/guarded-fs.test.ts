@@ -27,9 +27,9 @@ describe('GuardedFileSystem', () => {
       expect(content).toBe('test content');
     });
 
-    it('should deny generator write to AGENT.md', async () => {
-      await expect(
-        gfs.write('generator', 'knowledge/AGENT.md', 'forbidden')
+    it('should deny generator write to AGENTS.md', async () => {
+    await expect(
+    gfs.write('generator', 'knowledge/AGENTS.md', 'forbidden')
       ).rejects.toThrow('Permission denied');
     });
 
@@ -67,9 +67,9 @@ describe('GuardedFileSystem', () => {
       expect(content).toBe('content');
     });
 
-    it('should allow curator to write to AGENT.md', async () => {
-      await gfs.write('curator', 'knowledge/AGENT.md', '# Knowledge');
-      const content = await gfs.read('curator', 'knowledge/AGENT.md');
+    it('should allow curator to write to AGENTS.md', async () => {
+    await gfs.write('curator', 'knowledge/AGENTS.md', '# Knowledge');
+    const content = await gfs.read('curator', 'knowledge/AGENTS.md');
       expect(content).toBe('# Knowledge');
     });
 

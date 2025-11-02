@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Reflector } from '../src/lib/Reflector.js';
 import { ExecutionTrace } from '../src/lib/Generator.js';
-import { ExecutionResult } from '../mcp/types.js';
+import { ExecutionResult } from '../src/lib/mcp-types.js';
 import { writeFile, mkdir, rm, readFile } from 'fs/promises';
 import { join } from 'path';
 

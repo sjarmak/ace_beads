@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Curator } from '../src/lib/Curator.js';
-import { Insight } from '../mcp/types.js';
+import { Insight } from '../src/lib/mcp-types.js';
 import { writeFile, mkdir, rm, readFile } from 'fs/promises';
 import { join } from 'path';
 
 describe('Curator', () => {
   const testDir = join(process.cwd(), 'test-temp-curator');
   const testInsightsPath = join(testDir, 'insights.jsonl');
-  const testKnowledgePath = join(testDir, 'AGENT.md');
+  const testKnowledgePath = join(testDir, 'AGENTS.md');
 
   beforeEach(async () => {
     await mkdir(testDir, { recursive: true });

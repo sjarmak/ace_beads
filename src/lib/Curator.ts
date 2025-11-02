@@ -40,7 +40,7 @@ export class Curator {
     
     const insights = await this.loadInsights();
     const highConfidenceInsights = insights.filter(
-      (insight) => insight.confidence >= minConfidence && insight.onlineEligible
+      (insight) => insight.confidence >= minConfidence
     );
 
     console.log(
@@ -239,8 +239,9 @@ export class Curator {
     const content = await readFile(this.knowledgePath, 'utf-8');
     const lines = content.split('\n');
 
+    // Regex that handles consolidated bullets with "Aggregated from X instances" suffix
     const bulletRegex = new RegExp(
-      `\\[Bullet #${bulletId}, helpful:(\\d+), harmful:(\\d+)\\] (.+)`
+      `\\[Bullet #${bulletId}, helpful:(\\d+), harmful:(\\d+)(?:, [^\\]]+)?\\] (.+)`
     );
 
     for (let i = 0; i < lines.length; i++) {

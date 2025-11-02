@@ -35,14 +35,14 @@ fi
 
 echo
 echo "📋 Current MCP server configuration:"
-npm run cli -- mcp-config --list
+npm run cli -- amp-config --list
 
 echo
 echo "💡 To apply this configuration to your AI client:"
-echo "   ace mcp-config --apply"
+echo "   ace amp-config --apply"
 echo
 echo "💡 To modify the configuration, edit .ace.json:"
 echo "   - enabled: Whitelist of servers to allow (takes precedence)"
 echo "   - disabled: Blacklist of servers to exclude"
 echo
-echo "🔄 If you change .ace.json, run 'ace mcp-config --apply' to update your client."
+echo "🔄 If you change .ace.json, run 'ace amp-config --apply' to update your client."

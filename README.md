@@ -52,6 +52,7 @@ ace apply
 
 - **[QUICKSTART_CLI.md](QUICKSTART_CLI.md)** - Get started in 5 minutes
 - **[docs/CLI_LOOP.md](docs/CLI_LOOP.md)** - Complete CLI reference
+- **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)** - Configuration guide (ACE & Amp)
 - **[TESTING.md](TESTING.md)** - Testing guide and strategies
 
 ## How It Works
@@ -92,6 +93,7 @@ Beads (bd) → Reflector → Delta Queue → Curator → AGENTS.md
 | `ace apply` | Apply queued deltas |
 | `ace sweep` | Offline batch learning |
 | `ace delta ls` | List queue |
+| `ace amp-config` | Manage directory-level Amp settings |
 | `ace doctor` | Run diagnostics |
 
 See `ace --help` for all commands.

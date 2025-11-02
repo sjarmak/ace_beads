@@ -7,7 +7,7 @@ import { join } from 'path';
 describe('Knowledge Base Deduplication', () => {
   const testDir = join(process.cwd(), 'test-temp-dedup');
   const testInsightsPath = join(testDir, 'insights.jsonl');
-  const testKnowledgePath = join(testDir, 'AGENT.md');
+  const testKnowledgePath = join(testDir, 'AGENTS.md');
 
   beforeEach(async () => {
     await mkdir(testDir, { recursive: true });

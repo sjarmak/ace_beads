@@ -3,7 +3,7 @@ import { join, dirname, basename } from 'path';
 import { homedir } from 'os';
 import { loadConfig, getEffectiveMCPServers } from '../lib/config.js';
 
-export interface MCPConfigCommandOptions {
+export interface AmpConfigCommandOptions {
   apply?: boolean;
   list?: boolean;
   json?: boolean;
@@ -11,7 +11,7 @@ export interface MCPConfigCommandOptions {
   restore?: boolean;
 }
 
-export function mcpConfigCommand(options: MCPConfigCommandOptions = {}) {
+export function ampConfigCommand(options: AmpConfigCommandOptions = {}) {
   const config = loadConfig();
 
   if (options.restore) {
@@ -96,7 +96,7 @@ ACE Directory Configuration Management
 Configure complete Amp settings with directory-level overrides.
 
 USAGE:
-  ace mcp-config [options]
+  ace amp-config [options]
 
 OPTIONS:
   --apply          Apply project config to client configuration
@@ -106,10 +106,10 @@ OPTIONS:
   --verbose        Show detailed output
 
 EXAMPLES:
-  ace mcp-config --list                    # Show current config
-  ace mcp-config --apply                   # Apply to client config
-  ace mcp-config --restore                 # Restore global defaults
-  ace mcp-config --list --json             # Show config as JSON
+  ace amp-config --list                    # Show current config
+  ace amp-config --apply                   # Apply to client config
+  ace amp-config --restore                 # Restore global defaults
+  ace amp-config --list --json             # Show config as JSON
 
 CONFIGURATION METHODS:
 

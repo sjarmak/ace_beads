@@ -37,7 +37,7 @@ describe('Multi-Epoch Learning with Batch Insights', () => {
   const testDir = join(process.cwd(), 'test-temp-multi-epoch');
   const testTracesPath = join(testDir, 'execution_traces.jsonl');
   const testInsightsPath = join(testDir, 'insights.jsonl');
-  const testKnowledgePath = join(testDir, 'AGENT.md');
+  const testKnowledgePath = join(testDir, 'AGENTS.md');
 
   beforeEach(async () => {
     await mkdir(testDir, { recursive: true });

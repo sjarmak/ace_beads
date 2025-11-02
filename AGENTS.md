@@ -61,25 +61,27 @@ The patterns below are automatically managed - they accumulate over time based o
 
 ## Integration with Beads (bd)
 
-ACE works seamlessly with Beads for issue tracking:
+ACE works **automatically** with Beads - no manual commands needed:
 
 1. **Create issues**: `bd create "Fix auth bug" -t bug -p 1`
 2. **Work on task**: `bd update bd-42 --status in_progress`
-3. **Capture traces**: `ace capture --bead bd-42 --exec errors.json`
-4. **Complete task**: `bd close bd-42 --reason "Fixed"`
-5. **Learn from work**: `ace learn --beads bd-42`
+3. **Run tests**: `npm test` ← **Auto-captures** results to your bead
+4. **Complete task**: `bd close bd-42 --reason "Fixed"` ← **Auto-learns** and blocks if tests fail
 
-### Auto-Learning Hook (Optional)
+### How Auto-Activation Works
 
-Install a post-close hook to automatically learn when closing beads:
+**Auto-Capture (during tests):**
+- Posttest hook queries `bd list --status in_progress`
+- If you have in-progress beads, test results auto-capture
+- No env vars or branch names needed
 
-```bash
-ace beads hook install
-```
+**Auto-Learn (on close):**
+- `bd` command is wrapped to run ACE hooks
+- Before closing: runs tests, captures results, runs `ace learn`
+- Blocks close if tests fail
+- You never have to remember to run `ace learn` manually
 
-Now when you `bd close <id>`, ACE automatically runs learning on that task.
-
-## Example Workflow
+## Example Workflow (Fully Automatic)
 
 ```bash
 # 1. Start work
@@ -89,37 +91,25 @@ bd update bd-123 --status in_progress
 # 2. Work on the task, run builds/tests
 npm run build  # fails with TypeScript error
 
-# 3. Capture the failure
-cat > exec.json << 'EOF'
-[{
-  "runner": "tsc",
-  "command": "npm run build",
-  "status": "fail",
-  "errors": [{
-    "tool": "tsc",
-    "severity": "error",
-    "message": "Cannot find module './utils.js'",
-    "file": "src/main.ts",
-    "line": 3
-  }]
-}]
-EOF
+# 3. Fix the issue (e.g., add .js extension to import)
 
-ace capture --bead bd-123 --exec exec.json --outcome failure
+# 4. Verify fix
+npm test  # ← Auto-captures test results to bd-123
 
-# 4. Fix the issue (e.g., add .js extension to import)
-# 5. Verify fix
-npm run build  # passes
-
-# 6. Complete task
+# 5. Complete task
 bd close bd-123 --reason "Fixed import extensions"
-
-# 7. Learn from this work
-ace learn --beads bd-123
+# ↑ This automatically:
+#   - Runs tests one final time
+#   - Captures results
+#   - Runs ace learn
+#   - Updates AGENTS.md with new patterns
+#   - Closes the bead (or blocks if tests fail)
 ```
 
-After this, AGENTS.md will have a new bullet like:
+After closing, AGENTS.md will have a new bullet like:
 > [Bullet #abc123, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements when using ESM module resolution
+
+**You never have to manually run `ace capture` or `ace learn` - it happens automatically!**
 
 ## Learned Patterns (ACE-managed)
 <!-- This section is managed by the ACE Curator -->
@@ -129,6 +119,7 @@ After this, AGENTS.md will have a new bullet like:
 ### Build & Test Patterns
 <!-- Curator adds build/test insights here -->
 
+[Bullet #59835aa2, helpful:0, harmful:0, Aggregated from 2 instances] Generic error pattern - Address the error pattern: Generic error pattern
 ### TypeScript Patterns
 <!-- Curator adds TypeScript-specific insights here -->
 
@@ -140,22 +131,28 @@ After this, AGENTS.md will have a new bullet like:
 
 ## Available Commands
 
+### Automatic (you rarely need these):
+- Auto-capture happens during `npm test`
+- Auto-learn happens during `bd close`
+
+### Manual (for debugging/exploration):
 - `ace init` - Initialize ACE in a project
-- `ace capture` - Record execution trace
-- `ace analyze` - Extract patterns from traces
-- `ace update` - Apply insights to AGENTS.md
-- `ace learn` - Convenience: analyze → update
-- `ace get insights` - Query insights
+- `ace status` - Check ACE system status
+- `ace trace list` - View captured traces
 - `ace get bullets` - Query learned patterns
-- `ace beads hook install` - Auto-learn on bead close
+- `ace learn --beads <id>` - Manually trigger learning
+
+### Setup (run once):
+- `bash scripts/install-bd-hooks.sh` - Install bd wrapper for auto-learning
 
 ## Key Principles for Agents
 
-1. **Always capture failures** - Don't let execution errors go unrecorded
-2. **Learn after completing work** - Run `ace learn` when finishing tasks
-3. **Consult patterns before work** - Check `ace get bullets` for relevant guidance
-4. **Link discovered issues** - When you find new work, capture it with `--discovered`
-5. **Trust the feedback loop** - The more you use ACE, the better it gets
+1. **Always create a bead before starting work** - Use `bd create "Task description" -t task -p 1` before starting any new work
+2. **Mark beads in-progress** - Use `bd update <id> --status in_progress` so auto-capture works
+3. **Run tests during work** - `npm test` auto-captures results
+4. **Close beads properly** - `bd close <id>` auto-learns (never skip this!)
+5. **Trust the automation** - ACE captures and learns automatically, you don't need manual commands
+6. **Tests must pass** - You cannot close beads with failing tests (enforced automatically)
 
 ## Files and Directories
 

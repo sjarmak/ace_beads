@@ -132,6 +132,11 @@ export interface ACEConfig {
       reviewThreshold: number;
     };
   };
+  traceRetention?: {
+    maxTracesPerBead: number;
+    maxAgeInDays: number;
+    archivePath: string;
+  };
   roles?: {
     generator?: {
       agent: string;

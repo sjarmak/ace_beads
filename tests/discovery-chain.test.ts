@@ -5,11 +5,11 @@ import { Curator } from '../src/lib/Curator.js';
 import { BeadsClient } from '../src/lib/beads-client.js';
 import { writeFile, mkdir, rm, readFile } from 'fs/promises';
 import { join } from 'path';
-import { ExecutionResult } from '../mcp/types.js';
+import { ExecutionResult } from '../src/lib/mcp-types.js';
 
 describe('Discovery Chain Tests', () => {
   const testDir = join(process.cwd(), 'test-temp-discovery-chain');
-  const testKnowledgePath = join(testDir, 'AGENT.md');
+  const testKnowledgePath = join(testDir, 'AGENTS.md');
   const testTracePath = join(testDir, 'execution_traces.jsonl');
   const testInsightsPath = join(testDir, 'insights.jsonl');
 
@@ -33,6 +33,8 @@ describe('Discovery Chain Tests', () => {
 `;
 
     await writeFile(testKnowledgePath, mockKnowledge, 'utf-8');
+    await writeFile(testTracePath, '', 'utf-8');  // Initialize empty trace file
+    await writeFile(testInsightsPath, '', 'utf-8');  // Initialize empty insights file
     
     generator = new Generator(testKnowledgePath, testTracePath);
     beadsClient = new BeadsClient();

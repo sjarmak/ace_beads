@@ -33,75 +33,12 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
     throw new Error(`AGENTS.md not found: ${config.agentsPath}`);
   }
   
-  // Load insights
-  const insightsContent = readFileSync(config.insightsPath, 'utf-8');
-  const allInsights = insightsContent
-    .split('\n')
-    .filter(line => line.trim())
-    .map(line => JSON.parse(line));
+  // Delegate to Curator for processing insights and applying deltas
+  const curator = new Curator(config.insightsPath, config.agentsPath, maxDeltas);
+  const deltas = options.dryRun ? [] : await curator.processInsights(minConfidence);
   
-  // Filter insights
-  let insights = allInsights.filter(i => i.confidence >= minConfidence);
-  
-  if (options.forceInsightIds) {
-    const forcedIds = options.forceInsightIds.split(',').map(s => s.trim());
-    const forcedInsights = allInsights.filter(i => forcedIds.includes(i.id));
-    insights = [...insights, ...forcedInsights];
-  }
-  
-  // Load existing AGENTS.md
-  let agentsContent = readFileSync(config.agentsPath, 'utf-8');
-  const existingBullets = extractBullets(agentsContent);
-  
-  // Generate deltas
-  const deltas: Delta[] = [];
-  let duplicatesSkipped = 0;
-  let lowConfidenceSkipped = allInsights.length - insights.length;
-  
-  for (const insight of insights) {
-    if (deltas.length >= maxDeltas) break;
-    
-    // Check for duplicates
-    const isDuplicate = existingBullets.some(b => 
-      b.content.toLowerCase().includes(insight.signal.pattern.toLowerCase())
-    );
-    
-    if (isDuplicate) {
-      duplicatesSkipped++;
-      continue;
-    }
-    
-    // Determine section
-    const section = determineSection(insight);
-    
-    // Generate bullet
-    const bulletId = createHash('md5')
-      .update(insight.signal.pattern + insight.timestamp)
-      .digest('hex')
-      .substring(0, 8);
-    
-    const bulletContent = `[Bullet #${bulletId}, helpful:0, harmful:0] ${insight.signal.pattern} - ${insight.recommendation}`;
-    
-    deltas.push({
-      bulletId,
-      section,
-      content: bulletContent,
-      confidence: insight.confidence,
-      applied: false
-    });
-  }
-  
-  // Apply deltas
+  // Run deduplication and consolidation
   if (!options.dryRun && deltas.length > 0) {
-    for (const delta of deltas) {
-      agentsContent = addBulletToSection(agentsContent, delta.section, delta.content);
-      delta.applied = true;
-    }
-    
-    writeFileSync(config.agentsPath, agentsContent, 'utf-8');
-    
-    // Run deduplication after applying deltas
-    const curator = new Curator(config.insightsPath, config.agentsPath, config.maxDeltas);
     await curator.deduplicateAndConsolidate();
     
     // Trim AGENTS.md to 500 lines if needed
@@ -112,21 +49,24 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
   // Output
   if (options.json) {
     console.log(JSON.stringify({
-      deltas,
-      duplicatesSkipped,
-      lowConfidenceSkipped,
+      deltas: deltas.map(d => ({
+        bulletId: d.bullet_id,
+        section: d.section,
+        content: d.content,
+        confidence: d.confidence,
+        applied: true
+      })),
       updated: !options.dryRun
     }, null, 2));
   } else {
     console.log(`✅ Knowledge update complete`);
     console.log(`   Deltas applied: ${deltas.length}`);
-    console.log(`   Duplicates skipped: ${duplicatesSkipped}`);
-    console.log(`   Low confidence skipped: ${lowConfidenceSkipped}`);
     
     if (deltas.length > 0) {
       console.log(`\n📝 New bullets:`);
       deltas.forEach(d => {
-        console.log(`   [${d.section}] ${d.content.substring(0, 80)}...`);
+        const preview = d.content.length > 60 ? d.content.substring(0, 60) + '...' : d.content;
+        console.log(`   [${d.section}] ${preview}`);
       });
     }
     

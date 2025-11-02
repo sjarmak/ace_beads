@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Generator } from '../src/lib/Generator.js';
 import { writeFile, mkdir, rm, readFile } from 'fs/promises';
-import { ExecutionResult } from '../mcp/types.js';
+import { ExecutionResult } from '../src/lib/mcp-types.js';
 import { join } from 'path';
 
 describe('Generator', () => {
   const testDir = join(process.cwd(), 'test-temp-generator');
-  const testKnowledgePath = join(testDir, 'AGENT.md');
+  const testKnowledgePath = join(testDir, 'AGENTS.md');
   const testTracePath = join(testDir, 'execution_traces.jsonl');
 
   beforeEach(async () => {
