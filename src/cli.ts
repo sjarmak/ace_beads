@@ -12,6 +12,7 @@ import { updateCommand } from './commands/update.js';
 import { learnCommand } from './commands/learn.js';
 import { getCommand } from './commands/get.js';
 import { traceListCommand, traceShowCommand } from './commands/trace.js';
+import { threadReportCommand } from './commands/thread.js';
 import { beadsHookInstallCommand } from './commands/beads-hook.js';
 import { ampConfigCommand } from './commands/amp-config.js';
 import { statusCommand } from './commands/status.js';
@@ -193,17 +194,18 @@ program
   });
 
 program
-  .command('get <source>')
-  .description('Query insights or bullets (source: insights|bullets|both)')
-  .option('--min-confidence <n>', 'Filter by confidence', parseFloat)
-  .option('--tags <tags>', 'Filter by tags (comma-separated)')
-  .option('--sections <sections>', 'Filter bullets by section (comma-separated)')
-  .option('--beads <ids>', 'Filter by bead IDs (comma-separated)')
-  .option('--after <iso>', 'Filter insights after timestamp')
-  .option('--before <iso>', 'Filter insights before timestamp')
-  .option('--limit <n>', 'Max results', parseInt, 50)
-  .option('--sort-by <field>', 'Sort by: confidence|timestamp|helpful', 'confidence')
-  .option('--json', 'Output in JSON format')
+.command('get <source>')
+.description('Query insights or bullets (source: insights|bullets|both)')
+.option('--min-confidence <n>', 'Filter by confidence', parseFloat)
+.option('--tags <tags>', 'Filter by tags (comma-separated)')
+.option('--sections <sections>', 'Filter bullets by section (comma-separated)')
+.option('--beads <ids>', 'Filter by bead IDs (comma-separated)')
+.option('--threads <ids>', 'Filter by thread IDs (comma-separated)')
+.option('--after <iso>', 'Filter insights after timestamp')
+.option('--before <iso>', 'Filter insights before timestamp')
+.option('--limit <n>', 'Max results', parseInt, 50)
+.option('--sort-by <field>', 'Sort by: confidence|timestamp|helpful', 'confidence')
+.option('--json', 'Output in JSON format')
   .action(async (source, options) => {
     try {
       await getCommand({ source, ...options });
@@ -218,17 +220,21 @@ const traceCmd = program
   .description('Inspect execution traces');
 
 traceCmd
-  .command('list')
-  .description('List recent execution traces')
-  .option('--limit <n>', 'Max number of traces to show', parseInt, 20)
-  .option('--beads <ids>', 'Filter by bead IDs (comma-separated)')
-  .option('--json', 'Output in JSON format')
-  .action(async (options) => {
-    try {
-      const beads = options.beads
-        ? options.beads.split(',').map((s: string) => s.trim()).filter(Boolean)
+.command('list')
+.description('List recent execution traces')
+.option('--limit <n>', 'Max number of traces to show', parseInt, 20)
+.option('--beads <ids>', 'Filter by bead IDs (comma-separated)')
+.option('--threads <ids>', 'Filter by thread IDs (comma-separated)')
+.option('--json', 'Output in JSON format')
+.action(async (options) => {
+try {
+const beads = options.beads
+? options.beads.split(',').map((s: string) => s.trim()).filter(Boolean)
+  : undefined;
+  const threads = options.threads
+        ? options.threads.split(',').map((s: string) => s.trim()).filter(Boolean)
         : undefined;
-      await traceListCommand({ ...options, beads });
+      await traceListCommand({ ...options, beads, threads });
     } catch (error) {
       const code = (error as any)?.code;
       const exitCode = code === 'INVALID_ARGUMENT' ? 2
@@ -275,6 +281,24 @@ traceCmd
         console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
       }
       process.exit(exitCode);
+    }
+  });
+
+const threadCmd = program
+  .command('thread')
+  .description('Thread-based aggregation and reporting');
+
+threadCmd
+  .command('report')
+  .description('Generate thread-based aggregation report')
+  .option('--json', 'Output in JSON format')
+  .option('--limit <n>', 'Max threads to show', parseInt, 10)
+  .action(async (options) => {
+    try {
+      await threadReportCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
     }
   });
 

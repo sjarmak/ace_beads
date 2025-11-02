@@ -2,22 +2,15 @@ import { openSync, fstatSync, readSync, closeSync } from 'fs';
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 import { loadConfig } from '../lib/config.js';
-import type { ExecutionResult } from '../lib/mcp-types.js';
+import type { ExecutionResult, ExecutionTrace, ThreadCitation } from '../lib/mcp-types.js';
 
-interface ExecutionTrace {
-  trace_id: string;
-  timestamp: string;
-  bead_id: string;
-  task_description: string;
-  execution_results: ExecutionResult[];
-  discovered_issues: string[];
-  outcome: 'success' | 'failure' | 'partial';
-}
+
 
 interface TraceListOptions {
   limit?: number;
   json?: boolean;
   beads?: string[];
+  threads?: string[];
 }
 
 interface TraceShowOptions {
@@ -115,6 +108,12 @@ export async function traceListCommand(options: TraceListOptions): Promise<void>
     const beadSet = new Set(options.beads);
     traces = traces.filter(t => beadSet.has(t.bead_id));
   }
+
+  // Filter by thread IDs if specified
+  if (options.threads && options.threads.length > 0) {
+    const threadSet = new Set(options.threads);
+    traces = traces.filter(t => t.thread_refs && t.thread_refs.some(tr => threadSet.has(tr)));
+  }
   
   if (options.json) {
     console.log(JSON.stringify({
@@ -125,7 +124,10 @@ export async function traceListCommand(options: TraceListOptions): Promise<void>
         task_description: t.task_description,
         outcome: t.outcome,
         execution_count: t.execution_results.length,
-        discovered_count: t.discovered_issues.length
+        discovered_count: t.discovered_issues.length,
+        thread_refs: t.thread_refs || [],
+        thread_summary: t.thread_summary,
+        thread_citations_count: t.thread_citations?.length || 0
       })),
       total: traces.length
     }, null, 2));
@@ -135,13 +137,22 @@ export async function traceListCommand(options: TraceListOptions): Promise<void>
     for (const trace of traces) {
       const outcomeEmoji = trace.outcome === 'success' ? '✅' : trace.outcome === 'failure' ? '❌' : '⚠️';
       const timestamp = new Date(trace.timestamp).toLocaleString();
-      
+
       console.log(`${outcomeEmoji} ${trace.trace_id}`);
       console.log(`   Bead: ${trace.bead_id}`);
       console.log(`   Task: ${trace.task_description}`);
       console.log(`   Time: ${timestamp}`);
       console.log(`   Outcome: ${trace.outcome}`);
       console.log(`   Executions: ${trace.execution_results.length}, Discovered: ${trace.discovered_issues.length}`);
+
+      if (trace.thread_refs && trace.thread_refs.length > 0) {
+        console.log(`   Threads: ${trace.thread_refs.join(', ')}`);
+      }
+
+      if (trace.thread_summary) {
+        console.log(`   Thread Context: ${trace.thread_summary.substring(0, 60)}${trace.thread_summary.length > 60 ? '...' : ''}`);
+      }
+
       console.log('');
     }
     
@@ -227,12 +238,32 @@ export async function traceShowCommand(traceId: string, options: TraceShowOption
     console.log(`Task: ${trace.task_description}`);
     console.log(`Timestamp: ${timestamp}`);
     console.log(`Outcome: ${trace.outcome}`);
+
+    if (trace.thread_refs && trace.thread_refs.length > 0) {
+      console.log(`Thread Refs: ${trace.thread_refs.join(', ')}`);
+    }
+
+    if (trace.thread_summary) {
+      console.log(`Thread Summary: ${trace.thread_summary}`);
+    }
+
     console.log('');
     
     if (trace.discovered_issues.length > 0) {
       console.log(`🔍 Discovered Issues (${trace.discovered_issues.length}):`);
       trace.discovered_issues.forEach(issue => console.log(`   - ${issue}`));
       console.log('');
+    }
+
+    if (trace.thread_citations && trace.thread_citations.length > 0) {
+      console.log(`💬 Thread Citations (${trace.thread_citations.length}):`);
+      trace.thread_citations.forEach(citation => {
+        console.log(`   Thread: ${citation.thread_id}`);
+        if (citation.message_id) console.log(`   Message: ${citation.message_id}`);
+        console.log(`   Quote: "${citation.quote}"`);
+        console.log(`   Rationale: ${citation.rationale}`);
+        console.log('');
+      });
     }
     
     if (trace.execution_results.length > 0) {

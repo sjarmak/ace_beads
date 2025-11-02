@@ -1,11 +1,5 @@
 {
-  "mcpServers": {
-    "ace-learning-server": {
-      "command": "node",
-      "args": ["/Users/sjarmak/ACE_Beads_Amp/dist/mcp/server.js"],
-      "_target": "project"
-    }
-  },
+  "mcpServers": {},
   "agents": {
     "planning": true,
     "testing": true,

@@ -7,6 +7,7 @@ interface GetOptions {
   tags?: string;
   sections?: string;
   beads?: string;
+  threads?: string;
   after?: string;
   before?: string;
   limit?: number;
@@ -17,10 +18,12 @@ interface GetOptions {
 export async function getCommand(options: GetOptions): Promise<void> {
   const config = loadConfig();
   const limit = options.limit || 50;
-  
+
   const result: any = {
     totalMatched: 0,
-    filtered: false
+    filtered: false,
+    insightsTotal: 0,
+    bulletsTotal: 0
   };
   
   // Get insights
@@ -50,9 +53,18 @@ export async function getCommand(options: GetOptions): Promise<void> {
       
       if (options.beads) {
         const beadIds = options.beads.split(',').map(s => s.trim());
-        insights = insights.filter(i => 
-          beadIds.includes(i.taskId) || 
+        insights = insights.filter(i =>
+          beadIds.includes(i.taskId) ||
           (i.source.beadIds && i.source.beadIds.some((b: string) => beadIds.includes(b)))
+        );
+        result.filtered = true;
+      }
+
+      if (options.threads) {
+        const threadIds = options.threads.split(',').map(s => s.trim());
+        insights = insights.filter(i =>
+          // Check if insight has thread refs directly (if we add them later)
+          (i as any).thread_refs && (i as any).thread_refs.some((tr: string) => threadIds.includes(tr))
         );
         result.filtered = true;
       }
@@ -74,7 +86,8 @@ export async function getCommand(options: GetOptions): Promise<void> {
         insights.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
       }
       
-      result.totalMatched = insights.length;
+      result.insightsTotal = insights.length;
+      if (options.source === 'insights') result.totalMatched = insights.length;
       result.insights = insights.slice(0, limit);
     }
   }
@@ -99,7 +112,8 @@ export async function getCommand(options: GetOptions): Promise<void> {
         bullets.sort((a, b) => (b.helpful - b.harmful) - (a.helpful - a.harmful));
       }
       
-      if (!result.totalMatched) result.totalMatched = bullets.length;
+      result.bulletsTotal = bullets.length;
+      if (options.source === 'bullets') result.totalMatched = bullets.length;
       result.bullets = bullets.slice(0, limit);
     }
   }
@@ -109,7 +123,7 @@ export async function getCommand(options: GetOptions): Promise<void> {
     console.log(JSON.stringify(result, null, 2));
   } else {
     if (result.insights) {
-      console.log(`\n📊 Insights (${result.insights.length}/${result.totalMatched}):\n`);
+      console.log(`\n📊 Insights (${result.insights.length}/${result.insightsTotal}):\n`);
       result.insights.forEach((insight: any, i: number) => {
         console.log(`${i + 1}. ${insight.signal.pattern}`);
         console.log(`   Confidence: ${insight.confidence.toFixed(2)}`);
@@ -120,7 +134,7 @@ export async function getCommand(options: GetOptions): Promise<void> {
     }
     
     if (result.bullets) {
-      console.log(`\n📝 Bullets (${result.bullets.length}/${result.totalMatched}):\n`);
+      console.log(`\n📝 Bullets (${result.bullets.length}/${result.bulletsTotal}):\n`);
       result.bullets.forEach((bullet: any, i: number) => {
         console.log(`${i + 1}. [${bullet.section}] ${bullet.content}`);
         console.log(`   Score: +${bullet.helpful}/-${bullet.harmful} (net: ${bullet.score})`);
@@ -144,8 +158,8 @@ function extractBullets(content: string): Bullet[] {
   const lines = content.split('\n');
   let currentSection = 'Unknown';
   
-  const sectionRegex = /^### (.+)/;
-  const bulletRegex = /\[Bullet #([a-f0-9]+), helpful:(\d+), harmful:(\d+)\] (.+)/;
+  const sectionRegex = /^#{2,3} (.+)/;
+  const bulletRegex = /\[Bullet #([a-zA-Z0-9]+), helpful:(\d+), harmful:(\d+)(?:, [^\]]+)?\] (.+)/;
   
   for (const line of lines) {
     const sectionMatch = line.match(sectionRegex);

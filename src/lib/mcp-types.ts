@@ -29,6 +29,26 @@ export interface NormalizedError {
   severity: 'error' | 'warning';
 }
 
+export interface ExecutionTrace {
+  trace_id: string;
+  timestamp: string;
+  bead_id: string;
+  task_description: string;
+  execution_results: ExecutionResult[];
+  discovered_issues: string[];
+  outcome: 'success' | 'failure' | 'partial';
+  thread_refs?: string[];
+  thread_summary?: string;
+  thread_citations?: ThreadCitation[];
+}
+
+export interface ThreadCitation {
+  thread_id: string;
+  message_id?: string;
+  quote: string;
+  rationale: string;
+}
+
 export interface Insight {
   id: string;
   timestamp: string;
@@ -51,6 +71,7 @@ export interface Insight {
   metaTags: string[];
   delta: string;
   target_bullet_id?: string;
+  thread_refs?: string[];
 }
 
 export interface Delta {
