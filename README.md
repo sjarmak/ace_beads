@@ -1,270 +1,275 @@
-# ACE Framework for Amp
+# ACE Framework - Pure CLI
 
-Make Amp learn from its mistakes automatically.
+**Agentic Context Engineering**: Make your AI coding agent learn from mistakes automatically.
 
 ## What Is This?
 
-ACE (Agentic Context Engineering) creates a learning loop:
+ACE creates a self-improving learning loop:
 ```
 Work → Fail → Learn → Improve → Repeat
 ```
 
-Your AI coding agent gets better over time by capturing failures, extracting patterns, and updating its knowledge base.
+Your AI agent gets better over time by:
+1. **Capturing** execution failures
+2. **Extracting** patterns from those failures
+3. **Updating** its knowledge base (AGENTS.md)
 
-## Installation
+## Quick Start
 
-### Option 1: Global Install (Recommended)
+### Install
 
 ```bash
 npm install -g ace-beads-amp
 ```
 
-**Use it:**
+### Initialize in Your Project
+
 ```bash
 cd your-project
-ace init           # Set up ACE in your project
-ace learn          # Run learning cycle
-ace review         # Preview updates without applying
-ace-mcp-server     # Start MCP server for Amp/Cline/Claude Desktop
+ace init
+ace doctor  # Verify setup
 ```
 
-### Option 2: Download Binary
-
-Download the pre-built binary for your platform from [Releases](https://github.com/sjarmak/ace_beads/releases):
-- Linux (x64, arm64)
-- macOS (x64, arm64)
-- Windows (x64)
+### Use
 
 ```bash
-# Example for Linux x64
-wget https://github.com/sjarmak/ace_beads/releases/latest/download/ace-linux-x64.tar.gz
-tar -xzf ace-linux-x64.tar.gz
-./ace --version
+# After working on a task and encountering failures
+ace learn
+
+# Preview what would be learned
+ace review
+
+# Check status
+ace status
+
+# Apply queued insights
+ace apply
 ```
 
-### Option 3: Project-Local Setup
-
-```bash
-./scripts/create-ace-starter.sh /path/to/your-project
-cd your-project
-npm run ace-learn
-```
-
-**See results:**
-```bash
-cat AGENTS.md  # Patterns automatically added here
-```
+**See [QUICKSTART_CLI.md](QUICKSTART_CLI.md) for detailed workflow.**
 
 ## Documentation
 
-- 🚀 **[QUICK_START.md](QUICK_START.md)** - Start here! (5 min read)
-- 📦 **[EASY_INSTALL.md](EASY_INSTALL.md)** - One-command installation
-- 📖 **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Complete usage guide
-- 🔌 **[MCP_SERVER_GUIDE.md](docs/MCP_SERVER_GUIDE.md)** - MCP server setup for AI assistants
-- 🏗️ **[SETUP_COMPLETE.md](SETUP_COMPLETE.md)** - Original complex setup (reference)
+- 🚀 **[QUICKSTART_CLI.md](QUICKSTART_CLI.md)** - Get started in 5 minutes
+- 📖 **[docs/CLI_LOOP.md](docs/CLI_LOOP.md)** - Complete CLI reference
+- 🏗️ **[ACE_CLI_INTEGRATION.md](ACE_CLI_INTEGRATION.md)** - Architecture & implementation
+- 🔧 **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Integration patterns
 
 ## How It Works
 
-### The Three Agents
+### Three Roles
 
-1. **Generator** (agents/Generator.ts) - Captures what went wrong
-2. **Reflector** (agents/Reflector.ts) - Finds patterns in failures  
-3. **Curator** (agents/Curator.ts) - Updates AGENTS.md with learnings
+1. **Generator** (Main Amp agent)
+   - Executes coding tasks
+   - Captures failures in Beads issues
+   - Labels with `ace,reflect`
 
-### The Flow
+2. **Reflector** (Amp subagent, read-only)
+   - Analyzes execution traces
+   - Extracts patterns from failures
+   - Outputs JSON deltas (max 3 per session)
+
+3. **Curator** (Amp subagent, write-scoped)
+   - Validates and deduplicates deltas
+   - Merges into AGENTS.md deterministically
+   - Updates playbook.yaml
+
+### Data Flow
 
 ```
-You use Amp → Build/test fails → Generator captures trace
-                                          ↓
-AGENTS.md ← Curator adds patterns ← Reflector analyzes
-    ↓
-Next time: Amp reads patterns and does better ✓
+Beads (bd) → Reflector → Delta Queue → Curator → AGENTS.md
+                ↑                          ↓
+         Execution Traces            Playbook.yaml
 ```
 
-## Architecture
+## Core Commands
 
-\`\`\`
-ACE Framework
-├── Generator (executes tasks, discovers issues)
-├── Reflector (analyzes execution traces)
-└── Curator (integrates insights into AGENT.md)
+| Command | Purpose |
+|---------|---------|
+| `ace init` | Initialize workspace |
+| `ace status` | Show system status |
+| `ace learn` | Run full learning pipeline |
+| `ace review` | Preview without applying |
+| `ace apply` | Apply queued deltas |
+| `ace sweep` | Offline batch learning |
+| `ace delta ls` | List queue |
+| `ace doctor` | Run diagnostics |
 
-Beads (task tracking)
-├── Issue graph with dependencies
-├── discovered-from links
-└── Auto-sync to git via JSONL
+See `ace --help` for all commands.
 
-Core Modules
-├── mcp/guarded-fs.ts (role-based file permissions)
-├── mcp/exec-runner.ts (build/test/lint feedback)
-└── mcp/beads-client.ts (task management)
-\`\`\`
+## Example Workflow
 
-## ACE Learning Workflow
-
-### Online Adaptation (During Work)
-1. Generator completes task
-2. Reflector analyzes execution feedback
-3. Curator applies high-confidence deltas (confidence ≥ 0.8)
-4. Max 3 deltas per session
-
-### Offline Adaptation (Batch Learning)
-1. Multi-epoch analysis across all completed work
-2. Extract meta-patterns
-3. Propose consolidated deltas
-4. Human review for lower-confidence insights
-
-## Example Usage
-
-Create a test issue and work on it with ACE Generator:
-
-\`\`\`bash
-# Create test task
-bd create "Implement hello world function" -t task -p 1
-
-# The ace-generator subagent would:
-# 1. Claim the task
-# 2. Implement the function
-# 3. Run tests
-# 4. File discovered issues if problems found
-# 5. Report feedback for reflection
-\`\`\`
-
-After completion, run reflection:
-
-\`\`\`bash
-# Reflector analyzes the completed work
-# Curator updates knowledge/AGENT.md with insights
-\`\`\`
-
-## Project Structure
-
-\`\`\`
-ACE_Beads_Amp/
-├── agents/          # Future: agent implementations
-├── mcp/             # Core modules
-│   ├── types.ts
-│   ├── guarded-fs.ts
-│   ├── exec-runner.ts
-│   └── beads-client.ts
-├── knowledge/
-│   └── AGENT.md     # Curated knowledge base (ACE-managed)
-├── prompts/         # Subagent system prompts
-├── logs/traces/     # Execution traces
-├── scripts/         # Automation scripts
-├── tests/           # Test suites
-└── AGENTS.md        # Project guidance for AI agents
-\`\`\`
-
-## Testing
-
-\`\`\`bash
-npm test
-\`\`\`
-
-## Linting
-
-\`\`\`bash
-npm run lint
-\`\`\`
-
-## Type Checking
-
-\`\`\`bash
-npm run typecheck
-\`\`\`
-
-## Toolbox Scripts
-
-ACE includes toolbox scripts for workflow automation:
-
-### ace-learn
-Extracts patterns from recent work and updates AGENTS.md:
 ```bash
-amp "Run ace-learn on this project"
+# 1. Work on a task, build fails
+npm run build
+# Error: Cannot find module './auth.js'
+
+# 2. Track in Beads (optional)
+bd create "Fix ESM imports" --labels ace,reflect
+
+# 3. Fix the issue
+sed -i "s/import '.\/auth'/import '.\/auth.js'/g" src/index.ts
+
+# 4. Verify
+npm run build  # passes
+
+# 5. Close and learn
+bd close bd-123 --reason "Added .js extensions"
+ace learn --beads bd-123
+
+# 6. Review and apply
+ace status
+ace delta ls
+ace apply
 ```
 
-### ace-review
-Reviews AGENTS.md for duplicate bullets and archival candidates:
-```bash
-amp "Run ace-review to analyze AGENTS.md"
-```
+Result: AGENTS.md now has a bullet about ESM import extensions.
 
-### ace-mcp-config
-Complete directory-level Amp configuration management:
-```bash
-# List current configuration (MCP servers, agents, settings)
-ace mcp-config --list
+## Features
 
-# Apply project config to client (Amp/VS Code/Claude Desktop)
-ace mcp-config --apply
+### ✅ Pure CLI
+- No MCP server required
+- All operations via CLI commands
+- Subagents launch programmatically (Amp SDK)
 
-# Restore global defaults from backup
-ace mcp-config --restore
+### ✅ Deterministic Merging
+- Content normalization for deduplication
+- Stable sorting (section → helpful → content)
+- Identical inputs → byte-identical outputs
 
-# Setup automatic per-directory switching
-./scripts/setup-shell-integration.sh  # Supports bash, zsh, and fish
-```
+### ✅ Write-Scope Enforcement
+- Curator can only write to `knowledge/**` and `prompts/**`
+- Validated at code level
+- Explicit errors logged
 
-See [.toolbox/README.md](file:///.toolbox/README.md) for details.
+### ✅ Beads Integration
+- Prefer `--json` outputs from `bd` commands
+- Fall back to `.beads/issues.jsonl`
+- Auto-linking via `discovered-from`
 
-## 📚 Documentation
+### ✅ Schema Validation
+- Strict Zod validation for all deltas
+- Min confidence threshold (default 0.80)
+- Evidence requirements enforced
 
-- **[Directory Configuration Guide](docs/DIRECTORY_CONFIG_GUIDE.md)** - Complete setup and usage guide for per-directory Amp configuration management
+## Configuration
 
-## Directory Configuration Management
+Edit `.ace/config.json`:
 
-ACE provides complete directory-level Amp configuration management:
-
-### Per-Project Configuration
-
-Configure which MCP servers are active for specific projects:
-
-1. **Edit `.ace.json`** in your project root:
 ```json
 {
-  "mcpServers": {
-    "enabled": ["braingrid", "ace-learning-server"],
-    "disabled": ["chrome-devtools", "gong-extended", "salesforce"]
+  "roles": {
+    "generator": { "agent": "amp", "permissions": [...] },
+    "reflector": { "agent": "amp-subagent", "permissions": ["read"] },
+    "curator": { "agent": "amp-subagent", "permissions": ["read", "write:knowledge", "write:prompts"] }
+  },
+  "learning": {
+    "confidenceMin": 0.80,
+    "maxDeltasPerSession": 3
+  },
+  "beads": {
+    "bin": "bd",
+    "labels": ["ace", "reflect"]
   }
 }
 ```
 
-2. **Apply configuration**:
-```bash
-ace mcp-config --apply
+## Project Structure
+
+```
+ACE_Beads_Amp/
+├── .ace/                   # ACE configuration
+│   ├── config.json         # Role definitions, learning config
+│   └── delta-queue.json    # Pending deltas
+├── knowledge/              # Knowledge base
+│   ├── AGENTS.md           # Curated patterns (ACE-managed)
+│   └── playbook.yaml       # Section weights
+├── prompts/                # Role-specific prompts
+│   ├── generator.md
+│   ├── reflector.md
+│   └── curator.md
+├── src/
+│   ├── lib/                # Core modules
+│   │   ├── beads.ts        # Beads CLI wrapper
+│   │   ├── deltas.ts       # Delta schema & queue
+│   │   ├── merger.ts       # Deterministic merge
+│   │   ├── knowledge.ts    # AGENTS.md I/O
+│   │   ├── Reflector.ts    # Pattern extraction
+│   │   └── Curator.ts      # Knowledge curation
+│   └── commands/           # CLI commands
+├── tests/                  # Test suites
+├── logs/                   # Execution traces
+└── docs/                   # Documentation
 ```
 
-### Automatic Per-Directory Switching
+## Advanced Usage
 
-For seamless per-project configurations:
+### Offline Sweeps
 
-```bash
-# Setup automatic switching when changing directories
-./scripts/setup-shell-integration.sh  # Supports bash, zsh, and fish
-
-# Now 'cd' automatically applies the right MCP config
-cd my-project/    # Automatically applies my-project's MCP config
-cd other-project/ # Automatically switches to other-project's config
-```
-
-### Manual Control
+Learn from historical closed beads in bulk:
 
 ```bash
-# Check current configuration
-ace mcp-config --list
-
-# After shell integration is loaded:
-mcp-status    # Check which project config is active
-mcp-apply     # Force apply current directory's config
-mcp-restore   # Clear cache (restores default on next cd)
+ace sweep --range bd-100..bd-200
+ace sweep  # All closed beads with ace labels
 ```
 
-### Configuration Modes
+### Custom Confidence
 
-- **Enabled mode**: Only listed servers are active (`enabled` takes precedence)
-- **Disabled mode**: All servers except listed ones are active
-- **Default**: No filtering, all configured servers active
+```bash
+ace learn --min-confidence 0.9  # High confidence only
+ace learn --min-confidence 0.7  # Lower threshold
+```
+
+### Delta Management
+
+```bash
+ace delta ls --json
+ace delta show <id>
+ace delta rm <id1> <id2>
+```
+
+### Git Integration
+
+```bash
+# Creates commits on ace/curations branch
+ace apply
+
+# Skip git operations
+ace apply --no-branch
+```
+
+## Testing
+
+```bash
+npm test              # Run all tests
+npm run typecheck     # Type checking
+npm run lint          # Linting
+npm run build         # Build CLI
+```
+
+## MCP Server (Optional)
+
+While ACE is primarily CLI-based, an MCP server is available for multi-client use (Amp + Cline + Claude Desktop):
+
+```bash
+ace-mcp-server  # Start MCP server
+```
+
+See [docs/MCP_SERVER_GUIDE.md](docs/MCP_SERVER_GUIDE.md) for setup.
+
+## Beads CLI
+
+ACE integrates with [Beads](https://github.com/steveyegge/beads) for task tracking:
+
+```bash
+# Install Beads
+curl -fsSL https://github.com/steveyegge/beads/install.sh | bash
+
+# Initialize in project
+bd init
+```
+
+You can use ACE without Beads, but tracking provides better provenance.
 
 ## Learn More
 
@@ -272,3 +277,11 @@ mcp-restore   # Clear cache (restores default on next cd)
 - [Beads](https://github.com/steveyegge/beads)
 - [Amp Manual](https://ampcode.com/manual)
 - [Custom Subagents](https://github.com/sjarmak/amp-custom-subagents)
+
+## License
+
+MIT - see [LICENSE](LICENSE)
+
+## Contributing
+
+Issues and PRs welcome at [github.com/sjarmak/ace_beads](https://github.com/sjarmak/ace_beads)

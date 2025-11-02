@@ -1,0 +1,12 @@
+version: 0.3
+sections:
+  - id: "node/tooling"
+    weight: 0.6
+  - id: "typescript/testing"
+    weight: 0.8
+  - id: "build/patterns"
+    weight: 0.7
+  - id: "dependency/patterns"
+    weight: 0.6
+  - id: "architecture/patterns"
+    weight: 0.5

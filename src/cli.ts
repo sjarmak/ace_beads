@@ -14,6 +14,11 @@ import { getCommand } from './commands/get.js';
 import { traceListCommand, traceShowCommand } from './commands/trace.js';
 import { beadsHookInstallCommand } from './commands/beads-hook.js';
 import { mcpConfigCommand } from './commands/mcp-config.js';
+import { statusCommand } from './commands/status.js';
+import { applyCommand } from './commands/apply.js';
+import { sweepCommand } from './commands/sweep.js';
+import { deltaListCommand, deltaShowCommand, deltaRmCommand } from './commands/delta.js';
+import { doctorCommand } from './commands/doctor.js';
 import type { InitOptions } from './lib/mcp-types.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -324,6 +329,106 @@ program
       } else {
         console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
       }
+      process.exit(3);
+    }
+  });
+
+program
+  .command('status')
+  .description('Show ACE system status')
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      await statusCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+program
+  .command('apply')
+  .description('Apply deltas from queue to knowledge base')
+  .option('--id <ids...>', 'Apply specific delta IDs')
+  .option('--dry-run', 'Preview without applying')
+  .option('--no-branch', 'Skip git branch/commit')
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      await applyCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+program
+  .command('sweep')
+  .description('Offline learning from historical beads')
+  .option('--range <range>', 'Bead ID range (e.g., bd-100..bd-200)')
+  .option('--labels <labels>', 'Filter by labels (comma-separated)', 'ace,reflect')
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      await sweepCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+const deltaCmd = program
+  .command('delta')
+  .description('Manage delta queue');
+
+deltaCmd
+  .command('ls')
+  .description('List deltas in queue')
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      await deltaListCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+deltaCmd
+  .command('show <id>')
+  .description('Show delta details')
+  .option('--json', 'Output in JSON format')
+  .action(async (id, options) => {
+    try {
+      await deltaShowCommand(id, options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+deltaCmd
+  .command('rm <ids...>')
+  .description('Remove deltas from queue')
+  .option('--json', 'Output in JSON format')
+  .action(async (ids, options) => {
+    try {
+      await deltaRmCommand(ids, options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+program
+  .command('doctor')
+  .description('Run ACE diagnostics')
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      await doctorCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
       process.exit(3);
     }
   });

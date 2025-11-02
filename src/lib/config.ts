@@ -4,12 +4,21 @@ import { homedir } from 'os';
 import type { ACEConfig } from './mcp-types.js';
 
 const DEFAULT_CONFIG: ACEConfig = {
-  agentsPath: 'AGENTS.md',
+  agentsPath: 'knowledge/AGENTS.md',
   logsDir: 'logs',
   insightsPath: 'logs/insights.jsonl',
   tracesPath: 'logs/execution_traces.jsonl',
   maxDeltas: 3,
-  defaultConfidence: 0.8
+  defaultConfidence: 0.8,
+  deltaQueue: '.ace/delta-queue.json',
+  learning: {
+    confidenceMin: 0.80,
+    maxDeltasPerSession: 3,
+    offline: {
+      epochs: 3,
+      reviewThreshold: 0.65,
+    },
+  },
 };
 
 export function loadConfig(flags: Partial<ACEConfig> = {}, cwd?: string): ACEConfig {

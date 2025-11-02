@@ -123,6 +123,37 @@ export interface ACEConfig {
   tracesPath: string;
   maxDeltas: number;
   defaultConfidence: number;
+  deltaQueue?: string;
+  learning?: {
+    confidenceMin: number;
+    maxDeltasPerSession: number;
+    offline?: {
+      epochs: number;
+      reviewThreshold: number;
+    };
+  };
+  roles?: {
+    generator?: {
+      agent: string;
+      permissions: string[];
+    };
+    reflector?: {
+      agent: string;
+      name: string;
+      permissions: string[];
+    };
+    curator?: {
+      agent: string;
+      name: string;
+      permissions: string[];
+    };
+  };
+  beads?: {
+    bin: string;
+    db: string;
+    labels: string[];
+    autoLink: boolean;
+  };
   mcpServers?: MCPServerConfig;
 }
 
