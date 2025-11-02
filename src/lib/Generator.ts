@@ -2,6 +2,7 @@ import { BeadsClient, BeadIssue } from './beads-client.js';
 import { readFile, appendFile, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { ExecutionResult, AmpThreadMetadata } from './mcp-types.js';
+import { loadConfig } from './config.js';
 
 export interface BulletFeedback {
   bullet_id: string;
@@ -43,12 +44,13 @@ export class Generator {
   private bulletsCache: KnowledgeBullet[] = [];
 
   constructor(
-    knowledgeBasePath: string = '/Users/sjarmak/ACE_Beads_Amp/knowledge/AGENT.md',
-    executionTracePath: string = '/Users/sjarmak/ACE_Beads_Amp/logs/execution_traces.jsonl'
+    knowledgeBasePath?: string,
+    executionTracePath?: string
   ) {
+    const config = loadConfig();
     this.beadsClient = new BeadsClient();
-    this.knowledgeBasePath = knowledgeBasePath;
-    this.executionTracePath = executionTracePath;
+    this.knowledgeBasePath = knowledgeBasePath ?? config.agentsPath;
+    this.executionTracePath = executionTracePath ?? config.tracesPath;
   }
 
   async startTask(beadId: string, taskDescription?: string): Promise<void> {

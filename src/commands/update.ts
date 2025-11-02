@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { createHash } from 'crypto';
 import { loadConfig } from '../lib/config.js';
+import { Curator } from '../lib/Curator.js';
+import { AgentsMdMaintainer } from '../lib/agents-md-maintainer.js';
 
 interface UpdateOptions {
   minConfidence?: number;
@@ -97,6 +99,14 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
     }
     
     writeFileSync(config.agentsPath, agentsContent, 'utf-8');
+    
+    // Run deduplication after applying deltas
+    const curator = new Curator(config.insightsPath, config.agentsPath, config.maxDeltas);
+    await curator.deduplicateAndConsolidate();
+    
+    // Trim AGENTS.md to 500 lines if needed
+    const maintainer = new AgentsMdMaintainer(500, config.agentsPath);
+    await maintainer.trimToLimit();
   }
   
   // Output
@@ -147,21 +157,34 @@ function determineSection(insight: any): string {
   const tags = insight.metaTags || [];
   const runner = insight.source.runner || '';
   const pattern = insight.signal.pattern.toLowerCase();
+  const recommendation = (insight.signal.recommendation || '').toLowerCase();
   
+  // Check for project-specific patterns first
+  if (pattern.includes('ace') || pattern.includes('reflector') || pattern.includes('curator') || pattern.includes('generator')) {
+    return 'ACE Framework Patterns';
+  }
+  if (pattern.includes('bead') || pattern.includes('bd ') || pattern.includes('discovered')) {
+    return 'Beads Integration Patterns';
+  }
+  if (pattern.includes('mcp') || tags.includes('mcp')) {
+    return 'MCP Server Patterns';
+  }
+  
+  // Then check for general patterns
   if (tags.includes('typescript') || runner === 'tsc' || pattern.includes('typescript')) {
     return 'TypeScript Patterns';
   }
-  if (tags.includes('test') || runner === 'vitest' || runner === 'jest') {
+  if (tags.includes('test') || runner === 'vitest' || runner === 'jest' || pattern.includes('test')) {
     return 'Build & Test Patterns';
   }
-  if (pattern.includes('dependency') || pattern.includes('discovered')) {
+  if (pattern.includes('dependency')) {
     return 'Dependency Patterns';
   }
   if (pattern.includes('architecture') || pattern.includes('design')) {
     return 'Architecture Patterns';
   }
   
-  return 'Build & Test Patterns';
+  return 'TypeScript Patterns';
 }
 
 function addBulletToSection(content: string, section: string, bullet: string): string {

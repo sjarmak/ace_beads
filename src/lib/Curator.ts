@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { Insight } from './mcp-types.js';
+import { loadConfig } from './config.js';
 
 export interface KnowledgeBullet {
   id: string;
@@ -24,13 +25,14 @@ export class Curator {
   private maxDeltasPerSession: number;
 
   constructor(
-    insightsPath: string = '/Users/sjarmak/ACE_Beads_Amp/logs/insights.jsonl',
-    knowledgePath: string = '/Users/sjarmak/ACE_Beads_Amp/knowledge/AGENT.md',
-    maxDeltasPerSession: number = 3
+    insightsPath?: string,
+    knowledgePath?: string,
+    maxDeltasPerSession?: number
   ) {
-    this.insightsPath = insightsPath;
-    this.knowledgePath = knowledgePath;
-    this.maxDeltasPerSession = maxDeltasPerSession;
+    const config = loadConfig();
+    this.insightsPath = insightsPath ?? config.insightsPath;
+    this.knowledgePath = knowledgePath ?? config.agentsPath;
+    this.maxDeltasPerSession = maxDeltasPerSession ?? config.maxDeltas;
   }
 
   async processInsights(minConfidence: number = 0.8): Promise<CuratorDelta[]> {

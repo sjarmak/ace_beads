@@ -371,7 +371,7 @@ export class BeadsClient {
     if (process.env.ACE_E2E_SYNC === 'true') {
       try {
         execSync('npx tsx scripts/ace-learn-cycle.ts', { 
-          cwd: '/Users/sjarmak/ACE_Beads_Amp',
+          cwd: process.cwd(),
           stdio: 'inherit'
         });
         console.log(`[BeadsClient] ACE learning cycle completed synchronously`);
@@ -381,7 +381,7 @@ export class BeadsClient {
       }
     } else {
       // Run the learning cycle script in the background
-      exec('npx tsx scripts/ace-learn-cycle.ts', { cwd: '/Users/sjarmak/ACE_Beads_Amp' }, (error, stdout, stderr) => {
+      exec('npx tsx scripts/ace-learn-cycle.ts', { cwd: process.cwd() }, (error, stdout, stderr) => {
         if (error) {
           console.error(`[BeadsClient] ACE learning cycle error: ${error.message}`);
           return;

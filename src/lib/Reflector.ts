@@ -2,6 +2,7 @@ import { readFile, appendFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { ExecutionTrace, BulletFeedback } from './Generator.js';
 import { Insight, NormalizedError } from './mcp-types.js';
+import { loadConfig } from './config.js';
 
 export interface PatternSignature {
   errorPattern: string;
@@ -24,11 +25,12 @@ export class Reflector {
   private tracesPath: string;
 
   constructor(
-    insightsPath: string = '/Users/sjarmak/ACE_Beads_Amp/logs/insights.jsonl',
-    tracesPath: string = '/Users/sjarmak/ACE_Beads_Amp/logs/execution_traces.jsonl'
+    insightsPath?: string,
+    tracesPath?: string
   ) {
-    this.insightsPath = insightsPath;
-    this.tracesPath = tracesPath;
+    const config = loadConfig();
+    this.insightsPath = insightsPath ?? config.insightsPath;
+    this.tracesPath = tracesPath ?? config.tracesPath;
   }
 
   async analyzeTrace(trace: ExecutionTrace): Promise<Insight[]> {
