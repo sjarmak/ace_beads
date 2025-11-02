@@ -34,11 +34,11 @@ npm test tests/deltas.test.ts
 ```
 
 **Validates:**
-- ✅ Delta schema validation (Zod)
-- ✅ Content normalization (trim, lowercase, collapse spaces)
-- ✅ Hash generation (section::normalized)
-- ✅ Queue operations (read, write, enqueue, dequeue)
-- ✅ Deterministic sorting
+- Delta schema validation (Zod)
+- Content normalization (trim, lowercase, collapse spaces)
+- Hash generation (section::normalized)
+- Queue operations (read, write, enqueue, dequeue)
+- Deterministic sorting
 
 ### Merger Module (`tests/merger.test.ts`)
 
@@ -49,12 +49,12 @@ npm test tests/merger.test.ts
 ```
 
 **Validates:**
-- ✅ Deduplication by hash
-- ✅ Op handling (add, amend, deprecate)
-- ✅ Helpful/harmful counters
-- ✅ Sorting rules (section → helpful → content)
-- ✅ Bullet parsing from AGENTS.md
-- ✅ Serialization with provenance
+- Deduplication by hash
+- Op handling (add, amend, deprecate)
+- Helpful/harmful counters
+- Sorting rules (section → helpful → content)
+- Bullet parsing from AGENTS.md
+- Serialization with provenance
 
 ### Beads Client (`tests/beads-client.test.ts`)
 
@@ -65,10 +65,10 @@ npm test tests/beads-client.test.ts
 ```
 
 **Validates:**
-- ✅ JSON output preference
-- ✅ Fallback to issues.jsonl
-- ✅ Command execution (create, show, list, close)
-- ✅ Error handling
+- JSON output preference
+- Fallback to issues.jsonl
+- Command execution (create, show, list, close)
+- Error handling
 
 ### Knowledge Manager (`tests/knowledge.test.ts`)
 
@@ -79,10 +79,10 @@ npm test tests/knowledge.test.ts
 ```
 
 **Validates:**
-- ✅ Write-scope enforcement
-- ✅ YAML front-matter handling
-- ✅ Playbook updates
-- ✅ Section management
+- Write-scope enforcement
+- YAML front-matter handling
+- Playbook updates
+- Section management
 
 ## 2. Integration Tests
 
@@ -95,13 +95,13 @@ npm test tests/cli-integration.test.ts
 ```
 
 **Tests:**
-- ✅ `ace init` - Creates workspace
-- ✅ `ace status` - Shows queue and stats
-- ✅ `ace delta ls/show/rm` - Queue management
-- ✅ `ace apply` - Applies deltas deterministically
-- ✅ `ace apply --dry-run` - Preview mode
-- ✅ `ace doctor` - Diagnostics
-- ✅ `ace sweep` - Offline learning
+- `ace init` - Creates workspace
+- `ace status` - Shows queue and stats
+- `ace delta ls/show/rm` - Queue management
+- `ace apply` - Applies deltas deterministically
+- `ace apply --dry-run` - Preview mode
+- `ace doctor` - Diagnostics
+- `ace sweep` - Offline learning
 
 ### Full Workflow (`tests/e2e-workflow.test.ts`)
 

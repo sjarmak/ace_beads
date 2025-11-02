@@ -1,4 +1,4 @@
-# ACE Framework - Pure CLI
+# ACE Framework
 
 **Agentic Context Engineering**: Make your AI coding agent learn from mistakes automatically.
 
@@ -50,10 +50,9 @@ ace apply
 
 ## Documentation
 
-- 🚀 **[QUICKSTART_CLI.md](QUICKSTART_CLI.md)** - Get started in 5 minutes
-- 📖 **[docs/CLI_LOOP.md](docs/CLI_LOOP.md)** - Complete CLI reference
-- 🏗️ **[ACE_CLI_INTEGRATION.md](ACE_CLI_INTEGRATION.md)** - Architecture & implementation
-- 🔧 **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Integration patterns
+- **[QUICKSTART_CLI.md](QUICKSTART_CLI.md)** - Get started in 5 minutes
+- **[docs/CLI_LOOP.md](docs/CLI_LOOP.md)** - Complete CLI reference
+- **[TESTING.md](TESTING.md)** - Testing guide and strategies
 
 ## How It Works
 
@@ -127,27 +126,27 @@ Result: AGENTS.md now has a bullet about ESM import extensions.
 
 ## Features
 
-### ✅ Pure CLI
+### Pure CLI
 - No MCP server required
 - All operations via CLI commands
 - Subagents launch programmatically (Amp SDK)
 
-### ✅ Deterministic Merging
+### Deterministic Merging
 - Content normalization for deduplication
 - Stable sorting (section → helpful → content)
 - Identical inputs → byte-identical outputs
 
-### ✅ Write-Scope Enforcement
+### Write-Scope Enforcement
 - Curator can only write to `knowledge/**` and `prompts/**`
 - Validated at code level
 - Explicit errors logged
 
-### ✅ Beads Integration
+### Beads Integration
 - Prefer `--json` outputs from `bd` commands
 - Fall back to `.beads/issues.jsonl`
 - Auto-linking via `discovered-from`
 
-### ✅ Schema Validation
+### Schema Validation
 - Strict Zod validation for all deltas
 - Min confidence threshold (default 0.80)
 - Evidence requirements enforced
