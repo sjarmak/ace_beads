@@ -79,17 +79,48 @@ export function loadConfig(flags: Partial<ACEConfig> = {}, cwd?: string): ACECon
 
 export function validateConfig(config: ACEConfig): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   if (config.maxDeltas < 1) {
     errors.push('maxDeltas must be at least 1');
   }
-  
+
   if (config.defaultConfidence < 0 || config.defaultConfidence > 1) {
     errors.push('defaultConfidence must be between 0 and 1');
   }
-  
+
+  // Validate MCP server config
+  if (config.mcpServers) {
+    const { enabled, disabled } = config.mcpServers;
+    if (enabled && disabled) {
+      const overlap = enabled.filter(server => disabled.includes(server));
+      if (overlap.length > 0) {
+        errors.push(`MCP servers cannot be both enabled and disabled: ${overlap.join(', ')}`);
+      }
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors
   };
+}
+
+export function getEffectiveMCPServers(config: ACEConfig, allAvailableServers: string[]): string[] {
+  if (!config.mcpServers) {
+    return allAvailableServers; // No filtering
+  }
+
+  const { enabled, disabled } = config.mcpServers;
+
+  if (enabled && enabled.length > 0) {
+    // Whitelist mode: only explicitly enabled servers
+    return enabled.filter(server => allAvailableServers.includes(server));
+  }
+
+  if (disabled && disabled.length > 0) {
+    // Blacklist mode: all servers except disabled ones
+    return allAvailableServers.filter(server => !disabled.includes(server));
+  }
+
+  return allAvailableServers;
 }

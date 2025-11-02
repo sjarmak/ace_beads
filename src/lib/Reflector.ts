@@ -253,10 +253,19 @@ export class Reflector {
   }
 
   private computeSignature(error: NormalizedError): PatternSignature {
-    const errorPattern = error.message
+    let errorPattern = error.message
       .replace(/['"]/g, '')
       .replace(/\d+/g, 'N')
       .substring(0, 100);
+
+    // Abstract TypeScript type errors to a higher-level pattern
+    if (error.tool === 'tsc') {
+      if (errorPattern.includes('not assignable to') || errorPattern.includes('Type')) {
+        errorPattern = 'TypeScript type mismatch error';
+      } else if (errorPattern.includes('Cannot find module') || errorPattern.includes('module')) {
+        errorPattern = 'TypeScript module resolution error';
+      }
+    }
 
     const fileExt = error.file.split('.').pop() || '';
     const filePattern = fileExt ? `**/*.${fileExt}` : undefined;

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { initCommand } from './commands/init.js';
 import { onboardCommand } from './commands/onboard.js';
 import { captureCommand } from './commands/capture.js';
@@ -10,14 +13,19 @@ import { learnCommand } from './commands/learn.js';
 import { getCommand } from './commands/get.js';
 import { traceListCommand, traceShowCommand } from './commands/trace.js';
 import { beadsHookInstallCommand } from './commands/beads-hook.js';
+import { mcpConfigCommand } from './commands/mcp-config.js';
 import type { InitOptions } from './lib/mcp-types.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'));
 
 const program = new Command();
 
 program
   .name('ace')
   .description('ACE (Agentic Context Engineering) CLI - Self-improving coding agent framework')
-  .version('1.0.0');
+  .version(packageJson.version);
 
 program
   .command('onboard')
@@ -98,6 +106,9 @@ program
   .option('--exec <path>', 'Path to execution JSON file (or "-" for stdin)')
   .option('--discovered <ids>', 'Comma-separated discovered issue IDs')
   .option('--outcome <outcome>', 'Overall outcome: success|failure|partial', 'success')
+  .option('--thread-refs <refs>', 'Comma-separated Amp thread IDs or URLs')
+  .option('--thread-summary <summary>', 'Brief summary of thread context')
+  .option('--thread-citations <json>', 'JSON array of thread citations')
   .option('--json', 'Output in JSON format')
   .action(async (options) => {
     try {
@@ -154,6 +165,22 @@ program
   .action(async (options) => {
     try {
       await learnCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+program
+  .command('review')
+  .description('Review proposed updates without applying (dry-run mode)')
+  .option('--beads <ids>', 'Comma-separated bead IDs')
+  .option('--min-confidence <n>', 'Minimum confidence threshold', parseFloat, 0.8)
+  .option('--max-deltas <n>', 'Max updates to show', parseInt, 3)
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      await learnCommand({ ...options, dryRun: true });
     } catch (error) {
       console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
       process.exit(3);
@@ -272,6 +299,32 @@ beadsCmd
         console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
       }
       process.exit(1);
+    }
+  });
+
+program
+  .command('mcp-config')
+  .description('Configure MCP servers for this project')
+  .option('--apply', 'Apply project MCP config to client configuration')
+  .option('--list', 'List current MCP server configuration')
+  .option('--restore', 'Restore global default configuration from backup')
+  .option('--json', 'Output in JSON format')
+  .option('--verbose', 'Show detailed output')
+  .action(async (options) => {
+    try {
+      mcpConfigCommand(options);
+    } catch (error) {
+      if (options.json) {
+        console.error(JSON.stringify({
+          error: {
+            code: 'MCP_CONFIG_ERROR',
+            message: error instanceof Error ? error.message : String(error)
+          }
+        }, null, 2));
+      } else {
+        console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      }
+      process.exit(3);
     }
   });
 

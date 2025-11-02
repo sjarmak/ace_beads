@@ -7,6 +7,7 @@ export interface KnowledgeBullet {
   content: string;
   helpful: number;
   harmful: number;
+  section: string;
 }
 
 export interface CuratorDelta {
@@ -78,16 +79,8 @@ export class Curator {
 
   private generateDeltas(insights: Insight[]): CuratorDelta[] {
     const deltas: CuratorDelta[] = [];
-    const seenPatterns = new Set<string>();
 
     for (const insight of insights) {
-      const patternKey = this.normalizePattern(insight.signal.pattern);
-
-      if (seenPatterns.has(patternKey)) {
-        continue;
-      }
-      seenPatterns.add(patternKey);
-
       const section = this.determineSection(insight);
       const bullet = this.formatBullet(insight);
 
@@ -162,9 +155,6 @@ export class Curator {
 
     await writeFile(this.knowledgePath, lines.join('\n'));
     console.log(`[Curator] Applied delta to section "${delta.section}": ${delta.bullet_id}`);
-    
-    // Trigger deduplication hook after adding new bullet
-    await this.deduplicateAndConsolidate();
   }
 
   private findSectionIndex(lines: string[], sectionName: string): number {
@@ -205,18 +195,31 @@ export class Curator {
   async loadKnowledgeBullets(): Promise<KnowledgeBullet[]> {
     try {
       const content = await readFile(this.knowledgePath, 'utf-8');
-      // Updated regex to handle optional ", Aggregated from X instances" suffix
-      const bulletRegex = /\[Bullet #(\S+), helpful:(\d+), harmful:(\d+)(?:, [^\]]+)?\] (.+)/g;
+      const lines = content.split('\n');
       const bullets: KnowledgeBullet[] = [];
+      let currentSection = '';
 
-      let match;
-      while ((match = bulletRegex.exec(content)) !== null) {
-        bullets.push({
-          id: match[1],
-          helpful: parseInt(match[2]),
-          harmful: parseInt(match[3]),
-          content: match[4],
-        });
+      // Updated regex to handle optional ", Aggregated from X instances" suffix
+      const bulletRegex = /\[Bullet #(\S+), helpful:(\d+), harmful:(\d+)(?:, [^\]]+)?\] (.+)/;
+
+      for (const line of lines) {
+        // Track section headers
+        if (line.trim().startsWith('## ') || line.trim().startsWith('### ')) {
+          currentSection = line.trim().replace(/^##+ /, '');
+          continue;
+        }
+
+        // Match bullets
+        const match = line.match(bulletRegex);
+        if (match) {
+          bullets.push({
+            id: match[1],
+            helpful: parseInt(match[2]),
+            harmful: parseInt(match[3]),
+            content: match[4],
+            section: currentSection,
+          });
+        }
       }
 
       return bullets;
@@ -255,9 +258,6 @@ export class Curator {
 
     await writeFile(this.knowledgePath, lines.join('\n'));
     console.log(`[Curator] Updated bullet ${bulletId} counter: ${feedback}`);
-    
-    // Trigger deduplication hook after update
-    await this.deduplicateAndConsolidate();
   }
 
   /**
@@ -295,17 +295,19 @@ export class Curator {
   /**
    * Find duplicate bullets using normalized pattern matching
    * Returns groups of bullets that are duplicates of each other
+   * Only groups bullets within the same section
    */
   private findDuplicates(bullets: KnowledgeBullet[]): KnowledgeBullet[][] {
     const groups: Map<string, KnowledgeBullet[]> = new Map();
 
     for (const bullet of bullets) {
       const normalized = this.normalizePattern(bullet.content);
+      const key = `${bullet.section}::${normalized}`;
       
-      if (!groups.has(normalized)) {
-        groups.set(normalized, []);
+      if (!groups.has(key)) {
+        groups.set(key, []);
       }
-      groups.get(normalized)!.push(bullet);
+      groups.get(key)!.push(bullet);
     }
 
     // Only return groups with 2+ bullets (duplicates)

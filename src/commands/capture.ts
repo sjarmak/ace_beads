@@ -9,7 +9,17 @@ interface CaptureOptions {
   exec?: string;
   discovered?: string;
   outcome?: 'success' | 'failure' | 'partial';
+  threadRefs?: string;
+  threadSummary?: string;
+  threadCitations?: string;
   json?: boolean;
+}
+
+interface ThreadCitation {
+  thread_id: string;
+  message_id?: string;
+  quote: string;
+  rationale: string;
 }
 
 interface ExecutionTrace {
@@ -20,6 +30,32 @@ interface ExecutionTrace {
   execution_results: ExecutionResult[];
   discovered_issues: string[];
   outcome: 'success' | 'failure' | 'partial';
+  thread_refs?: string[];
+  thread_summary?: string;
+  thread_citations?: ThreadCitation[];
+}
+
+/**
+ * Parse thread reference from ID or URL
+ * Supports formats:
+ * - T-xxx... (direct thread ID)
+ * - https://ampcode.com/threads/T-xxx... (full URL)
+ */
+function parseThreadRef(ref: string): string {
+  const trimmed = ref.trim();
+  
+  // Extract thread ID from URL
+  const urlMatch = trimmed.match(/threads\/(T-[\w-]+)/i);
+  if (urlMatch) {
+    return urlMatch[1];
+  }
+  
+  // Validate direct thread ID format
+  if (/^T-[\w-]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+  
+  throw new Error(`Invalid thread reference: ${ref}. Expected thread ID (T-xxx...) or URL.`);
 }
 
 export async function captureCommand(options: CaptureOptions): Promise<void> {
@@ -43,6 +79,21 @@ export async function captureCommand(options: CaptureOptions): Promise<void> {
     ? options.discovered.split(',').map(s => s.trim())
     : [];
   
+  // Parse thread references
+  const threadRefs = options.threadRefs
+    ? options.threadRefs.split(',').map(ref => parseThreadRef(ref))
+    : undefined;
+  
+  // Parse thread citations
+  let threadCitations: ThreadCitation[] | undefined;
+  if (options.threadCitations) {
+    try {
+      threadCitations = JSON.parse(options.threadCitations);
+    } catch (error) {
+      throw new Error(`Failed to parse thread citations JSON: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
   // Create trace
   const trace: ExecutionTrace = {
     trace_id: randomUUID(),
@@ -51,7 +102,10 @@ export async function captureCommand(options: CaptureOptions): Promise<void> {
     task_description: options.desc || options.bead,
     execution_results: executions,
     discovered_issues: discoveredIssues,
-    outcome: options.outcome || 'success'
+    outcome: options.outcome || 'success',
+    ...(threadRefs && { thread_refs: threadRefs }),
+    ...(options.threadSummary && { thread_summary: options.threadSummary }),
+    ...(threadCitations && { thread_citations: threadCitations })
   };
   
   // Write to traces file
@@ -64,13 +118,21 @@ export async function captureCommand(options: CaptureOptions): Promise<void> {
       timestamp: trace.timestamp,
       written: true,
       executionCount: executions.length,
-      discoveredCount: discoveredIssues.length
+      discoveredCount: discoveredIssues.length,
+      threadRefsCount: threadRefs?.length || 0,
+      threadCitationsCount: threadCitations?.length || 0
     }, null, 2));
   } else {
     console.log(`✅ Trace captured: ${trace.trace_id}`);
     console.log(`   Bead: ${trace.bead_id}`);
     console.log(`   Executions: ${executions.length}`);
     console.log(`   Discovered: ${discoveredIssues.length}`);
+    if (threadRefs && threadRefs.length > 0) {
+      console.log(`   Thread refs: ${threadRefs.length}`);
+    }
+    if (options.threadSummary) {
+      console.log(`   Thread context: ${options.threadSummary.substring(0, 60)}${options.threadSummary.length > 60 ? '...' : ''}`);
+    }
     console.log(`   Outcome: ${trace.outcome}`);
     console.log(`   Saved to: ${config.tracesPath}`);
   }

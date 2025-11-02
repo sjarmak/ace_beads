@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "ace-learning-server": {
+      "command": "node",
+      "args": ["/Users/sjarmak/ACE_Beads_Amp/dist/mcp/server.js"],
+      "_target": "project"
+    }
+  },
+  "agents": {
+    "planning": true,
+    "testing": true,
+    "devops": false,
+    "docs": true,
+    "compliance": false,
+    "autonomy": true
+  },
+  "experimental": {
+    "librarian": true
+  },
+  "amp": {
+    "dangerouslyAllowAll": false,
+    "updates": {
+      "mode": "auto"
+    },
+    "internal": {
+      "modes": true,
+      "showCost": false
+    }
+  }
+}

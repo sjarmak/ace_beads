@@ -210,8 +210,16 @@ describe('Curator', () => {
     await writeFile(testInsightsPath, insights.map((i) => JSON.stringify(i)).join('\n'));
 
     const deltas = await curator.processInsights(0.8);
-
-    expect(deltas.length).toBe(1);
+    
+    // Initially creates 2 bullets (one per insight)
+    expect(deltas.length).toBe(2);
+    
+    // But deduplication consolidates them into 1
+    const consolidatedCount = await curator.deduplicateAndConsolidate();
+    expect(consolidatedCount).toBe(1);
+    
+    const bullets = await curator.loadKnowledgeBullets();
+    expect(bullets.length).toBe(1);
   });
 
   it('should preserve existing bullets when adding new ones', async () => {

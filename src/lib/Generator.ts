@@ -32,6 +32,7 @@ export interface KnowledgeBullet {
   content: string;
   helpful: number;
   harmful: number;
+  section: string;
 }
 
 export class Generator {
@@ -206,18 +207,31 @@ export class Generator {
   private async loadKnowledgeBullets(): Promise<KnowledgeBullet[]> {
     try {
       const content = await readFile(this.knowledgeBasePath, 'utf-8');
-      // Updated regex to handle optional ", Aggregated from X instances" suffix
-      const bulletRegex = /\[Bullet #(\S+), helpful:(\d+), harmful:(\d+)(?:, [^\]]+)?\] (.+)/g;
+      const lines = content.split('\n');
       const bullets: KnowledgeBullet[] = [];
+      let currentSection = '';
 
-      let match;
-      while ((match = bulletRegex.exec(content)) !== null) {
-        bullets.push({
-          id: match[1],
-          helpful: parseInt(match[2]),
-          harmful: parseInt(match[3]),
-          content: match[4],
-        });
+      // Updated regex to handle optional ", Aggregated from X instances" suffix
+      const bulletRegex = /\[Bullet #(\S+), helpful:(\d+), harmful:(\d+)(?:, [^\]]+)?\] (.+)/;
+
+      for (const line of lines) {
+        // Track section headers
+        if (line.trim().startsWith('## ') || line.trim().startsWith('### ')) {
+          currentSection = line.trim().replace(/^##+ /, '');
+          continue;
+        }
+
+        // Match bullets
+        const match = line.match(bulletRegex);
+        if (match) {
+          bullets.push({
+            id: match[1],
+            helpful: parseInt(match[2]),
+            harmful: parseInt(match[3]),
+            content: match[4],
+            section: currentSection,
+          });
+        }
       }
 
       return bullets;

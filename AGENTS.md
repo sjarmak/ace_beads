@@ -181,6 +181,11 @@ npm run typecheck
 ### TypeScript Patterns
 <!-- TypeScript-specific patterns for this project -->
 
+### MCP Configuration Patterns
+<!-- Patterns for configuring MCP servers per project -->
+
+[Bullet #mcp-config-001, helpful:0, harmful:0] Project-specific MCP server configuration reduces context overload - Use .ace.json with mcpServers.enabled/disabled to control which MCP servers are loaded for specific projects, preventing irrelevant context from flooding the agent
+
 [Bullet #f3dae788, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements for TypeScript files when using ESM module resolution
 [Bullet #7372075e, helpful:1, harmful:0] TypeScript type errors from incorrect variable type assignment - Always ensure variable assignments match declared types - TypeScript will catch type mismatches at compile time
 [Bullet #3fc9abac, helpful:0, harmful:0] TypeScript build errors require running tsc before tests - Always run npm run build before npm test to catch type errors early

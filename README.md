@@ -11,18 +11,43 @@ Work → Fail → Learn → Improve → Repeat
 
 Your AI coding agent gets better over time by capturing failures, extracting patterns, and updating its knowledge base.
 
-## Quick Start (For New Projects)
+## Installation
 
-**Install in your project:**
+### Option 1: Global Install (Recommended)
+
 ```bash
-./scripts/create-ace-starter.sh /path/to/your-project
+npm install -g ace-beads-amp
 ```
 
 **Use it:**
 ```bash
 cd your-project
-amp "Build something"
-npm run ace-learn  # After work is done
+ace init           # Set up ACE in your project
+ace learn          # Run learning cycle
+ace review         # Preview updates without applying
+ace-mcp-server     # Start MCP server for Amp/Cline/Claude Desktop
+```
+
+### Option 2: Download Binary
+
+Download the pre-built binary for your platform from [Releases](https://github.com/sjarmak/ace_beads/releases):
+- Linux (x64, arm64)
+- macOS (x64, arm64)
+- Windows (x64)
+
+```bash
+# Example for Linux x64
+wget https://github.com/sjarmak/ace_beads/releases/latest/download/ace-linux-x64.tar.gz
+tar -xzf ace-linux-x64.tar.gz
+./ace --version
+```
+
+### Option 3: Project-Local Setup
+
+```bash
+./scripts/create-ace-starter.sh /path/to/your-project
+cd your-project
+npm run ace-learn
 ```
 
 **See results:**
@@ -35,6 +60,7 @@ cat AGENTS.md  # Patterns automatically added here
 - 🚀 **[QUICK_START.md](QUICK_START.md)** - Start here! (5 min read)
 - 📦 **[EASY_INSTALL.md](EASY_INSTALL.md)** - One-command installation
 - 📖 **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Complete usage guide
+- 🔌 **[MCP_SERVER_GUIDE.md](docs/MCP_SERVER_GUIDE.md)** - MCP server setup for AI assistants
 - 🏗️ **[SETUP_COMPLETE.md](SETUP_COMPLETE.md)** - Original complex setup (reference)
 
 ## How It Works
@@ -164,7 +190,81 @@ Reviews AGENTS.md for duplicate bullets and archival candidates:
 amp "Run ace-review to analyze AGENTS.md"
 ```
 
+### ace-mcp-config
+Complete directory-level Amp configuration management:
+```bash
+# List current configuration (MCP servers, agents, settings)
+ace mcp-config --list
+
+# Apply project config to client (Amp/VS Code/Claude Desktop)
+ace mcp-config --apply
+
+# Restore global defaults from backup
+ace mcp-config --restore
+
+# Setup automatic per-directory switching
+./scripts/setup-shell-integration.sh  # Supports bash, zsh, and fish
+```
+
 See [.toolbox/README.md](file:///.toolbox/README.md) for details.
+
+## 📚 Documentation
+
+- **[Directory Configuration Guide](docs/DIRECTORY_CONFIG_GUIDE.md)** - Complete setup and usage guide for per-directory Amp configuration management
+
+## Directory Configuration Management
+
+ACE provides complete directory-level Amp configuration management:
+
+### Per-Project Configuration
+
+Configure which MCP servers are active for specific projects:
+
+1. **Edit `.ace.json`** in your project root:
+```json
+{
+  "mcpServers": {
+    "enabled": ["braingrid", "ace-learning-server"],
+    "disabled": ["chrome-devtools", "gong-extended", "salesforce"]
+  }
+}
+```
+
+2. **Apply configuration**:
+```bash
+ace mcp-config --apply
+```
+
+### Automatic Per-Directory Switching
+
+For seamless per-project configurations:
+
+```bash
+# Setup automatic switching when changing directories
+./scripts/setup-shell-integration.sh  # Supports bash, zsh, and fish
+
+# Now 'cd' automatically applies the right MCP config
+cd my-project/    # Automatically applies my-project's MCP config
+cd other-project/ # Automatically switches to other-project's config
+```
+
+### Manual Control
+
+```bash
+# Check current configuration
+ace mcp-config --list
+
+# After shell integration is loaded:
+mcp-status    # Check which project config is active
+mcp-apply     # Force apply current directory's config
+mcp-restore   # Clear cache (restores default on next cd)
+```
+
+### Configuration Modes
+
+- **Enabled mode**: Only listed servers are active (`enabled` takes precedence)
+- **Disabled mode**: All servers except listed ones are active
+- **Default**: No filtering, all configured servers active
 
 ## Learn More
 

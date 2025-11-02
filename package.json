@@ -5,8 +5,14 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "ace": "dist/src/cli.js"
+    "ace": "dist/src/cli.js",
+    "ace-mcp-server": "dist/mcp/server.js"
   },
+  "files": [
+    "dist/**",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "build:cli": "bun build src/cli.ts --compile --outfile dist/ace",
@@ -15,17 +21,35 @@
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
-    "cli": "node dist/cli.js"
+    "cli": "node dist/src/cli.js",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "ace",
     "beads",
     "amp",
     "agentic",
-    "context-engineering"
+    "context-engineering",
+    "ai-agent",
+    "self-improving",
+    "coding-agent",
+    "mcp",
+    "mcp-server",
+    "model-context-protocol"
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sjarmak/ace_beads.git"
+  },
+  "homepage": "https://github.com/sjarmak/ace_beads#readme",
+  "bugs": {
+    "url": "https://github.com/sjarmak/ace_beads/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",

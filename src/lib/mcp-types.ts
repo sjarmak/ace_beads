@@ -111,6 +111,11 @@ export interface BeadNotificationEvent {
   payload: NotificationPayload;
 }
 
+export interface MCPServerConfig {
+  enabled?: string[];
+  disabled?: string[];
+}
+
 export interface ACEConfig {
   agentsPath: string;
   logsDir: string;
@@ -118,6 +123,7 @@ export interface ACEConfig {
   tracesPath: string;
   maxDeltas: number;
   defaultConfidence: number;
+  mcpServers?: MCPServerConfig;
 }
 
 export interface InitOptions {
