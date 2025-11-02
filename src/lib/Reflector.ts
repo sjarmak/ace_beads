@@ -1,7 +1,7 @@
 import { readFile, appendFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { ExecutionTrace, BulletFeedback } from './Generator.js';
-import { Insight, NormalizedError } from '../mcp/types.js';
+import { Insight, NormalizedError } from './mcp-types.js';
 
 export interface PatternSignature {
   errorPattern: string;

@@ -1,7 +1,7 @@
 import { exec, execSync } from 'child_process';
 import { promisify } from 'util';
 import { appendFile, mkdir } from 'fs/promises';
-import { AmpThreadMetadata, BeadNotificationEvent } from './types.js';
+import { AmpThreadMetadata, BeadNotificationEvent } from './mcp-types.js';
 import { randomUUID } from 'crypto';
 import { existsSync } from 'fs';
 import { dirname, resolve } from 'path';

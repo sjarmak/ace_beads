@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { Generator } from './agents/Generator.js';
-import { Reflector } from './agents/Reflector.js';
+import { Generator } from './src/lib/Generator.js';
+import { Reflector } from './src/lib/Reflector.js';
 import { ErrorHooks } from './src/error-hooks.js';
 import { writeFile, mkdir, unlink } from 'fs/promises';
 import { existsSync } from 'fs';

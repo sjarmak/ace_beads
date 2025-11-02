@@ -1,5 +1,5 @@
-import { Reflector } from '../agents/Reflector.js';
-import { Curator } from '../agents/Curator.js';
+import { Reflector } from '../src/lib/Reflector.js';
+import { Curator } from '../src/lib/Curator.js';
 
 async function runACELearningCycle() {
   console.log('=== ACE Learning Cycle ===\n');

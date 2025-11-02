@@ -64,7 +64,10 @@ bd close bd-42 --reason "Completed" --json
 3. **Work on it**: Implement, test, document
 4. **Discover new work?** Create linked issue:
    - `bd create "Found bug" -p 1 --deps discovered-from:<parent-id>`
-5. **Complete**: `bd close <id> --reason "Done"`
+5. **BEFORE closing**: Run full test suite
+   - `npm run build && npm test`
+   - If tests fail: Create discovered issues, DO NOT close parent
+6. **Complete**: `bd close <id> --reason "Done"` (only when tests pass)
 
 ### Auto-Sync
 

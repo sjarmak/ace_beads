@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import type { ExecutionResult, NormalizedError } from './types.js';
+import type { ExecutionResult, NormalizedError } from './mcp-types.js';
 
 const execAsync = promisify(exec);
 

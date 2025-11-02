@@ -8,7 +8,9 @@ import { analyzeCommand } from './commands/analyze.js';
 import { updateCommand } from './commands/update.js';
 import { learnCommand } from './commands/learn.js';
 import { getCommand } from './commands/get.js';
-import type { InitOptions } from './lib/types.js';
+import { traceListCommand, traceShowCommand } from './commands/trace.js';
+import { beadsHookInstallCommand } from './commands/beads-hook.js';
+import type { InitOptions } from './lib/mcp-types.js';
 
 const program = new Command();
 
@@ -176,6 +178,100 @@ program
     } catch (error) {
       console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
       process.exit(3);
+    }
+  });
+
+const traceCmd = program
+  .command('trace')
+  .description('Inspect execution traces');
+
+traceCmd
+  .command('list')
+  .description('List recent execution traces')
+  .option('--limit <n>', 'Max number of traces to show', parseInt, 20)
+  .option('--beads <ids>', 'Filter by bead IDs (comma-separated)')
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      const beads = options.beads
+        ? options.beads.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : undefined;
+      await traceListCommand({ ...options, beads });
+    } catch (error) {
+      const code = (error as any)?.code;
+      const exitCode = code === 'INVALID_ARGUMENT' ? 2
+        : code === 'TRACE_NOT_FOUND' || code === 'TRACES_FILE_NOT_FOUND' ? 4
+        : code === 'PARSE_ERROR' ? 7
+        : 3;
+      
+      if (options.json) {
+        console.error(JSON.stringify({
+          error: {
+            code: code || 'TRACE_LIST_ERROR',
+            message: error instanceof Error ? error.message : String(error)
+          }
+        }, null, 2));
+      } else {
+        console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      }
+      process.exit(exitCode);
+    }
+  });
+
+traceCmd
+  .command('show <trace_id>')
+  .description('Show full details of a specific trace')
+  .option('--json', 'Output in JSON format')
+  .action(async (traceId, options) => {
+    try {
+      await traceShowCommand(traceId, options);
+    } catch (error) {
+      const code = (error as any)?.code;
+      const exitCode = code === 'INVALID_ARGUMENT' ? 2
+        : code === 'TRACE_NOT_FOUND' || code === 'TRACES_FILE_NOT_FOUND' ? 4
+        : code === 'PARSE_ERROR' ? 7
+        : 3;
+      
+      if (options.json) {
+        console.error(JSON.stringify({
+          error: {
+            code: code || 'TRACE_SHOW_ERROR',
+            message: error instanceof Error ? error.message : String(error)
+          }
+        }, null, 2));
+      } else {
+        console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      }
+      process.exit(exitCode);
+    }
+  });
+
+const beadsCmd = program
+  .command('beads')
+  .description('Beads integration commands');
+
+beadsCmd
+  .command('hook')
+  .description('Manage Beads hooks')
+  .command('install')
+  .description('Install ACE hooks for Beads')
+  .option('--json', 'Output in JSON format')
+  .option('--verbose', 'Enable verbose logging')
+  .action(async (options) => {
+    try {
+      await beadsHookInstallCommand(options);
+    } catch (error) {
+      if (options.json) {
+        console.error(JSON.stringify({
+          error: {
+            code: 'HOOK_INSTALL_ERROR',
+            message: error instanceof Error ? error.message : String(error)
+          }
+        }, null, 2));
+      } else {
+        console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      }
+      process.exit(1);
     }
   });
 

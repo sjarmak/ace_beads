@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Generator } from '../agents/Generator.js';
+import { Generator } from '../src/lib/Generator.js';
 import { writeFile, mkdir, rm, readFile } from 'fs/promises';
 import { ExecutionResult } from '../mcp/types.js';
 import { join } from 'path';

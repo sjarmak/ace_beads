@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Generator } from '../agents/Generator.js';
-import { Reflector } from '../agents/Reflector.js';
-import { Curator } from '../agents/Curator.js';
-import { BeadsClient } from '../mcp/beads-client.js';
+import { Generator } from '../src/lib/Generator.js';
+import { Reflector } from '../src/lib/Reflector.js';
+import { Curator } from '../src/lib/Curator.js';
+import { BeadsClient } from '../src/lib/beads-client.js';
 import { writeFile, mkdir, rm, readFile } from 'fs/promises';
 import { join } from 'path';
 import { ExecutionResult } from '../mcp/types.js';

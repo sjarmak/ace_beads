@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GuardedFileSystem } from '../mcp/guarded-fs.js';
+import { GuardedFileSystem } from '../src/lib/guarded-fs.js';
 import { writeFile, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 

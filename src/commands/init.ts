@@ -1,7 +1,9 @@
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { dirname } from 'path';
 import { loadConfig } from '../lib/config.js';
-import type { InitOptions, InitResult } from '../lib/types.js';
+import type { InitOptions, InitResult } from '../lib/mcp-types.js';
+import { ensureBeadsInstalled, initBeadsIfNeeded } from '../lib/beads-installer.js';
+import { ensureGeneratorRunning } from '../lib/amp-generator.js';
 
 const AGENTS_MD_TEMPLATE = `# ACE_Beads_Amp Project
 
@@ -26,6 +28,8 @@ This project implements the ACE (Agentic Context Engineering) framework using Am
 `;
 
 export async function initCommand(options: InitOptions): Promise<InitResult> {
+  await ensureBeadsInstalled();
+  
   const config = loadConfig({
     agentsPath: options.agentsPath,
     logsDir: options.logsDir
@@ -87,6 +91,10 @@ export async function initCommand(options: InitOptions): Promise<InitResult> {
       skipped.push(config.agentsPath);
     }
   }
+  
+  initBeadsIfNeeded(options.quiet);
+  
+  await ensureGeneratorRunning();
   
   return {
     created,

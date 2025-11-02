@@ -1,7 +1,7 @@
 import { appendFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import { Curator } from '../agents/Curator.js';
-import { BeadIssue } from '../mcp/beads-client.js';
+import { Curator } from '../src/lib/Curator.js';
+import { BeadIssue } from '../src/lib/beads-client.js';
 
 async function dogfoodACE13() {
   console.log('=== Dogfooding ACE Framework on ACE_Beads_Amp-13 ===\n');

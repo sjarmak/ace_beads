@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import { Insight } from '../mcp/types.js';
+import { Insight } from './mcp-types.js';
 
 export interface KnowledgeBullet {
   id: string;

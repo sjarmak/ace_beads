@@ -1,5 +1,7 @@
 node_modules/
 dist/
+!dist/binaries/*.tar.gz
+!dist/binaries/*.sha256
 *.log
 .DS_Store
 logs/traces/*
@@ -7,3 +9,5 @@ logs/traces/*
 metrics/*.jsonl
 knowledge/insights.jsonl
 knowledge/deltas/
+.ace.json
+mcp/

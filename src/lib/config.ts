@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'fs';
 import { resolve, join } from 'path';
 import { homedir } from 'os';
-import type { ACEConfig } from './types.js';
+import type { ACEConfig } from './mcp-types.js';
 
 const DEFAULT_CONFIG: ACEConfig = {
   agentsPath: 'AGENTS.md',

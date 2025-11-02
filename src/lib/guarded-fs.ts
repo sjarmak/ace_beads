@@ -1,6 +1,6 @@
 import { readFile, writeFile, access, constants } from 'fs/promises';
 import { join, resolve } from 'path';
-import type { Role, FilePermission } from './types.js';
+import type { Role, FilePermission } from './mcp-types.js';
 
 export class GuardedFileSystem {
   private permissions: FilePermission[] = [];

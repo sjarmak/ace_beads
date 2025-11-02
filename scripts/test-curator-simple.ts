@@ -1,5 +1,5 @@
-import { Curator } from '../agents/Curator.js';
-import { BeadIssue } from '../mcp/beads-client.js';
+import { Curator } from '../src/lib/Curator.js';
+import { BeadIssue } from '../src/lib/beads-client.js';
 import { appendFile, mkdir, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { BeadsClient } from '../mcp/beads-client.js';
-import { ExecutionRunner } from '../mcp/exec-runner.js';
-import { GuardedFileSystem } from '../mcp/guarded-fs.js';
+import { BeadsClient } from '../src/lib/beads-client.js';
+import { ExecutionRunner } from '../src/lib/exec-runner.js';
+import { GuardedFileSystem } from '../src/lib/guarded-fs.js';
 
 /**
  * Test script to validate ACE learning cycle

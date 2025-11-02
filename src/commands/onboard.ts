@@ -2,6 +2,8 @@ import { existsSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { loadConfig } from '../lib/config.js';
 import { initCommand } from './init.js';
+import { ensureBeadsInstalled } from '../lib/beads-installer.js';
+import { ensureGeneratorRunning } from '../lib/amp-generator.js';
 
 const ONBOARD_AGENTS_MD = `# ACE Framework - Agent Onboarding Guide
 
@@ -212,6 +214,9 @@ After completing this, AGENTS.md should have a bullet about TypeScript imports r
 `;
 
 export async function onboardCommand(options: { json?: boolean }): Promise<void> {
+  await ensureBeadsInstalled();
+  await ensureGeneratorRunning();
+  
   console.error('🚀 ACE Onboarding - Setting up self-improving agent framework...\n');
   
   const steps: string[] = [];
@@ -226,23 +231,8 @@ export async function onboardCommand(options: { json?: boolean }): Promise<void>
   writeFileSync(config.agentsPath, ONBOARD_AGENTS_MD, 'utf-8');
   steps.push('AGENTS.md updated with agent onboarding guide');
   
-  // 3. Check if bd is available and run bd init
-  try {
-    execSync('which bd', { stdio: 'ignore' });
-    
-    // Check if .beads already exists
-    if (!existsSync('.beads')) {
-      console.error('📋 Initializing Beads (bd)...');
-      execSync('bd init', { stdio: 'inherit' });
-      steps.push('Beads (bd) initialized for issue tracking');
-    } else {
-      steps.push('Beads already initialized');
-    }
-  } catch (error) {
-    console.error('⚠️  Beads (bd) not found in PATH - skipping bd init');
-    console.error('   Install from: https://github.com/steveyegge/beads\n');
-    steps.push('Beads not available (optional)');
-  }
+  // 3. Beads is already ensured by ensureBeadsInstalled() call above
+  // initCommand() will have already run bd init if needed
   
   // 4. Create sample project structure if it doesn't exist
   if (!existsSync('src')) {

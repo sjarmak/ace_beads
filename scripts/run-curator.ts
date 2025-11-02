@@ -1,4 +1,4 @@
-import { Curator } from '../agents/Curator.js';
+import { Curator } from '../src/lib/Curator.js';
 
 async function runCurator() {
   console.log('=== Running Curator to Process Insights ===\n');

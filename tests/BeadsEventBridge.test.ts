@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BeadsEventBridge, BeadEvent } from '../mcp/BeadsEventBridge.js';
 import { writeFile, mkdir, rm, appendFile } from 'fs/promises';
 import { join } from 'path';
-import { BeadIssue } from '../mcp/beads-client.js';
+import { BeadIssue } from '../src/lib/beads-client.js';
 
 describe('BeadsEventBridge', () => {
   const testDir = join(process.cwd(), 'test-temp-event-bridge');

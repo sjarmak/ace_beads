@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Curator } from '../agents/Curator.js';
+import { Curator } from '../src/lib/Curator.js';
 import { Insight } from '../mcp/types.js';
 import { writeFile, mkdir, rm, readFile } from 'fs/promises';
 import { join } from 'path';

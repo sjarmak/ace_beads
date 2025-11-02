@@ -15,6 +15,8 @@ export interface ExecutionResult {
   exitCode: number;
   duration: number;
   timestamp: string;
+  runner?: string;
+  command?: string;
 }
 
 export interface NormalizedError {
@@ -107,4 +109,32 @@ export interface BeadNotificationEvent {
   thread_id: string;
   event_type: NotificationEventType;
   payload: NotificationPayload;
+}
+
+export interface ACEConfig {
+  agentsPath: string;
+  logsDir: string;
+  insightsPath: string;
+  tracesPath: string;
+  maxDeltas: number;
+  defaultConfidence: number;
+}
+
+export interface InitOptions {
+  agents?: string;
+  agentsPath?: string;
+  logsDir?: string;
+  yes?: boolean;
+  json?: boolean;
+  verbose?: boolean;
+  quiet?: boolean;
+}
+
+export interface InitResult {
+  created: string[];
+  skipped: string[];
+  agentsPath: string;
+  logsDir: string;
+  tracesPath: string;
+  insightsPath: string;
 }

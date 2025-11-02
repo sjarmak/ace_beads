@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { Generator } from '../agents/Generator.js';
-import { ExecutionResult, NormalizedError } from '../mcp/types.js';
+import { Generator } from './lib/Generator.js';
+import { ExecutionResult, NormalizedError } from './lib/mcp-types.js';
 
 const execAsync = promisify(exec);
 

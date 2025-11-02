@@ -1,4 +1,4 @@
-import { BeadsClient } from '../mcp/beads-client.js';
+import { BeadsClient } from '../src/lib/beads-client.js';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 

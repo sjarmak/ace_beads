@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { KnowledgeAnalyzer } from '../mcp/knowledge-analyzer.js';
+import { KnowledgeAnalyzer } from '../src/lib/knowledge-analyzer.js';
 import { writeFile, unlink, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import { resolve } from 'path';

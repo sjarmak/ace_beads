@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { Curator } from './agents/Curator.js';
+import { Curator } from './src/lib/Curator.js';
 import { writeFile, readFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import { resolve, dirname } from 'path';

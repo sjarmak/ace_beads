@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Reflector } from '../agents/Reflector.js';
-import { ExecutionTrace } from '../agents/Generator.js';
+import { Reflector } from '../src/lib/Reflector.js';
+import { ExecutionTrace } from '../src/lib/Generator.js';
 import { ExecutionResult } from '../mcp/types.js';
 import { writeFile, mkdir, rm, readFile } from 'fs/promises';
 import { join } from 'path';

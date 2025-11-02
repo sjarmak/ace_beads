@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Generator } from '../agents/Generator.js';
-import { Reflector } from '../agents/Reflector.js';
-import { KnowledgeAnalyzer } from '../mcp/knowledge-analyzer.js';
+import { Generator } from '../src/lib/Generator.js';
+import { Reflector } from '../src/lib/Reflector.js';
+import { KnowledgeAnalyzer } from '../src/lib/knowledge-analyzer.js';
 import { writeFile, unlink, mkdir, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { resolve } from 'path';

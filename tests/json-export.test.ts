@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { BeadsClient } from '../mcp/beads-client.js';
+import { BeadsClient } from '../src/lib/beads-client.js';
 import { readFile, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 

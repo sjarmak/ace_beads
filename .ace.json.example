@@ -1,0 +1,8 @@
+{
+  "agentsPath": "AGENTS.md",
+  "logsDir": "logs",
+  "insightsPath": "logs/insights.jsonl",
+  "tracesPath": "logs/execution_traces.jsonl",
+  "maxDeltas": 3,
+  "defaultConfidence": 0.8
+}

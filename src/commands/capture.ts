@@ -1,7 +1,7 @@
 import { readFileSync, appendFileSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { loadConfig } from '../lib/config.js';
-import type { ExecutionResult } from '../lib/types.js';
+import type { ExecutionResult } from '../lib/mcp-types.js';
 
 interface CaptureOptions {
   bead: string;

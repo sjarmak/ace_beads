@@ -1,7 +1,7 @@
-import { BeadsClient, BeadIssue } from '../mcp/beads-client.js';
+import { BeadsClient, BeadIssue } from './beads-client.js';
 import { readFile, appendFile, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import { ExecutionResult } from '../mcp/types.js';
+import { ExecutionResult, AmpThreadMetadata } from './mcp-types.js';
 
 export interface BulletFeedback {
   bullet_id: string;
@@ -21,6 +21,10 @@ export interface ExecutionTrace {
   discovered_issues: string[];
   completed: boolean;
   outcome: 'success' | 'failure' | 'partial';
+  amp_threads?: AmpThreadMetadata[];
+  thread_refs?: string[];
+  thread_summary?: string;
+  thread_citations?: { thread_id: string; message_id?: string; quote: string; rationale: string }[];
 }
 
 export interface KnowledgeBullet {
