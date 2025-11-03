@@ -1,17 +1,7 @@
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import type { ACEConfig } from './mcp-types.js';
-
-export interface ExecutionTrace {
-  trace_id: string;
-  timestamp: string;
-  bead_id: string;
-  task_description: string;
-  execution_results: any[];
-  discovered_issues: string[];
-  outcome: string;
-  [key: string]: any;
-}
+import type { ExecutionTrace } from './types.js';
 
 export interface CleanupResult {
   tracesArchived: number;

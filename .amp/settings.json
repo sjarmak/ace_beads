@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "ace-learning-server": {
+      "command": "node",
+      "args": [
+        "/Users/sjarmak/ACE_Beads_Amp/dist/src/mcp/server.js"
+      ]
+    },
+    "custom-subagents": {
+      "command": "node",
+      "args": [
+        "--loader",
+        "tsx",
+        "/Users/sjarmak/custom-subagent/src/registry-mcp-server.ts"
+      ]
+    }
+  }
+}

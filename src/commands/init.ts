@@ -7,7 +7,8 @@ import { ensureGeneratorRunning } from '../lib/amp-generator.js';
 
 const AGENTS_MD_TEMPLATE = `# ACE_Beads_Amp Project
 
-This project implements the ACE (Agentic Context Engineering) framework using Amp subagents and Beads for task tracking.
+This project implements the ACE (Agentic Context Engineering) framework ` +
+`using Amp subagents and Beads for task tracking.
 
 ## Learned Patterns (ACE-managed)
 <!-- This section is managed by the ACE Curator -->

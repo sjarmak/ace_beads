@@ -1,0 +1,32 @@
+{
+  "amp.permissions": [
+    {
+      "tool": "Read",
+      "action": "allow"
+    },
+    {
+      "tool": "Grep",
+      "action": "allow"
+    },
+    {
+      "tool": "glob",
+      "action": "allow"
+    },
+    {
+      "tool": "finder",
+      "action": "allow"
+    },
+    {
+      "tool": "Bash",
+      "action": "allow"
+    },
+    {
+      "tool": "edit_file",
+      "action": "ask"
+    },
+    {
+      "tool": "create_file",
+      "action": "ask"
+    }
+  ]
+}

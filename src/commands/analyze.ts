@@ -1,7 +1,7 @@
 import { readFileSync, appendFileSync, existsSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { loadConfig } from '../lib/config.js';
-import type { ExecutionTrace } from '../lib/mcp-types.js';
+import type { ExecutionTrace, Insight } from '../lib/types.js';
 
 interface AnalyzeOptions {
   mode: 'single' | 'batch';
@@ -11,29 +11,6 @@ interface AnalyzeOptions {
   minFrequency?: number;
   dryRun?: boolean;
   json?: boolean;
-}
-
-interface Insight {
-  id: string;
-  timestamp: string;
-  taskId: string;
-  source: {
-    runner?: string;
-    beadIds: string[];
-  };
-  signal: {
-    pattern: string;
-    evidence: string[];
-  };
-  recommendation: string;
-  scope: {
-    files?: string[];
-    glob?: string;
-  };
-  confidence: number;
-  onlineEligible: boolean;
-  metaTags: string[];
-  thread_refs?: string[];
 }
 
 export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
@@ -138,7 +115,9 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
 function inferPattern(error: any): string {
   const msg = error.message.toLowerCase();
   
-  if (msg.includes('explicit file extensions') || (msg.includes('relative import') && msg.includes('.js'))) {
+  const hasExplicitExtensions = msg.includes('explicit file extensions');
+  const hasRelativeImportWithJs = msg.includes('relative import') && msg.includes('.js');
+  if (hasExplicitExtensions || hasRelativeImportWithJs) {
     return 'TypeScript ESM import missing .js extension';
   }
   if (msg.includes('cannot find module') && msg.includes('.js')) {
@@ -167,7 +146,8 @@ function calculateConfidence(errors: any[], totalTraces: number): number {
 
 function generateRecommendation(pattern: string, error: any): string {
   if (pattern.includes('ESM import missing .js')) {
-    return 'Always use .js extensions in import statements for TypeScript files when using ESM module resolution';
+    return 'Always use .js extensions in import statements for TypeScript files ' +
+      'when using ESM module resolution';
   }
   if (pattern.includes('Module not found')) {
     return `Verify the module exists and the import path is correct: ${error.message}`;
@@ -193,7 +173,18 @@ function inferTags(runner: string, error: any): string[] {
   return tags;
 }
 
-function analyzeTracesInContext(traces: ExecutionTrace[], contextId: string | undefined, contextType: 'thread' | 'general'): Insight[] {
+function inferSection(runner: string): string {
+  if (runner === 'tsc') return 'TypeScript Patterns';
+  if (runner === 'vitest') return 'Build & Test Patterns';
+  if (runner === 'eslint') return 'Build & Test Patterns';
+  return 'Build & Test Patterns';
+}
+
+function analyzeTracesInContext(
+  traces: ExecutionTrace[],
+  contextId: string | undefined,
+  contextType: 'thread' | 'general'
+): Insight[] {
   const insights: Insight[] = [];
 
   for (const trace of traces) {
@@ -238,7 +229,8 @@ function analyzeTracesInContext(traces: ExecutionTrace[], contextId: string | un
               beadIds: [trace.bead_id]
             },
             signal: {
-              pattern: contextType === 'thread' ? `${pattern} (Thread: ${contextId})` : pattern,
+              pattern: contextType === 'thread' ?
+                `${pattern} (Thread: ${contextId})` : pattern,
               evidence: errors.map(e => `${e.file}:${e.line}: ${e.message}`)
             },
             recommendation: generateRecommendation(pattern, errors[0]),
@@ -247,8 +239,16 @@ function analyzeTracesInContext(traces: ExecutionTrace[], contextId: string | un
               glob: inferGlob(errors.map(e => e.file))
             },
             confidence: adjustedConfidence,
-            onlineEligible: true, // Let Curator decide based on confidence
-            metaTags: [...inferTags(exec.runner || 'unknown', errors[0]), contextType === 'thread' ? 'thread-specific' : 'general'],
+            onlineEligible: true,
+            delta: {
+              section: inferSection(exec.runner || 'unknown'),
+              operation: 'add' as const,
+              content: generateRecommendation(pattern, errors[0])
+            },
+            metaTags: [
+              ...inferTags(exec.runner || 'unknown', errors[0]),
+              contextType === 'thread' ? 'thread-specific' : 'general'
+            ],
             thread_refs: trace.thread_refs
           };
 
@@ -265,7 +265,10 @@ function analyzeCrossThreadPatterns(allTraces: ExecutionTrace[]): Insight[] {
   const insights: Insight[] = [];
 
   // Look for patterns that occur across multiple threads
-  const errorsByPattern = new Map<string, { errors: any[], threads: Set<string>, traces: ExecutionTrace[] }>();
+  const errorsByPattern = new Map<
+    string,
+    { errors: any[], threads: Set<string>, traces: ExecutionTrace[] }
+  >();
 
   for (const trace of allTraces) {
     if (trace.outcome === 'success' || !trace.thread_refs) continue;
@@ -293,8 +296,8 @@ function analyzeCrossThreadPatterns(allTraces: ExecutionTrace[]): Insight[] {
 
   // Create insights for cross-thread patterns
   for (const [pattern, data] of errorsByPattern) {
-    if (data.threads.size > 1) { // Only if pattern spans multiple threads
-      const confidence = calculateConfidence(data.errors, allTraces.length) * 1.5; // Boost cross-thread patterns
+    if (data.threads.size > 1) {
+      const confidence = calculateConfidence(data.errors, allTraces.length) * 1.5;
 
       const insight: Insight = {
         id: randomUUID(),
@@ -308,13 +311,22 @@ function analyzeCrossThreadPatterns(allTraces: ExecutionTrace[]): Insight[] {
           pattern: `${pattern} (Cross-thread pattern across ${data.threads.size} threads)`,
           evidence: data.errors.map(e => `${e.file}:${e.line}: ${e.message}`)
         },
-        recommendation: `Address ${pattern} - this pattern appears across multiple threads, indicating a systemic issue`,
+        recommendation:
+          `Address ${pattern} - this pattern appears across multiple threads, ` +
+          'indicating a systemic issue',
         scope: {
           files: data.errors.map(e => e.file),
           glob: inferGlob(data.errors.map(e => e.file))
         },
         confidence: Math.min(confidence, 1.0),
         onlineEligible: true,
+        delta: {
+          section: 'Architecture Patterns',
+          operation: 'add' as const,
+          content:
+            `Address ${pattern} - this pattern appears across multiple threads, ` +
+            'indicating a systemic issue'
+        },
         metaTags: ['cross-thread', 'systemic-issue'],
         thread_refs: Array.from(data.threads)
       };

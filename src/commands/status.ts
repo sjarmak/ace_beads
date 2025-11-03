@@ -67,7 +67,13 @@ export async function statusCommand(options: { json?: boolean }): Promise<void> 
         console.log(`    ${section}: ${count}`);
       }
     }
-    console.log(`\nBeads: ${result.beads.total} total, ${result.beads.labeled} labeled ace/reflect, ${result.beads.ready} ready`);
-    console.log(`\nConfig: confidence ≥ ${result.config.confidenceMin}, max ${result.config.maxDeltasPerSession} deltas/session`);
+    const beadsSummary =
+      `\nBeads: ${result.beads.total} total, ${result.beads.labeled} labeled ` +
+      `ace/reflect, ${result.beads.ready} ready`;
+    console.log(beadsSummary);
+    const configSummary =
+      `\nConfig: confidence ≥ ${result.config.confidenceMin}, ` +
+      `max ${result.config.maxDeltasPerSession} deltas/session`;
+    console.log(configSummary);
   }
 }

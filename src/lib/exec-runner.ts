@@ -41,7 +41,8 @@ export class ExecutionRunner {
 
     const duration = Date.now() - startTime;
     const errors = this.normalizeErrors(command, stdout, stderr);
-    const status: 'pass' | 'fail' = exitCode === 0 && errors.filter(e => e.severity === 'error').length === 0 ? 'pass' : 'fail';
+    const hasErrors = errors.filter(e => e.severity === 'error').length === 0;
+    const status: 'pass' | 'fail' = exitCode === 0 && hasErrors ? 'pass' : 'fail';
 
     const result: ExecutionResult = {
       status,
@@ -180,7 +181,11 @@ export class ExecutionRunner {
     return errors;
   }
 
-  private async persistTrace(taskId: string, command: string, result: ExecutionResult): Promise<void> {
+  private async persistTrace(
+    taskId: string,
+    command: string,
+    result: ExecutionResult
+  ): Promise<void> {
     const filename = `${taskId}-${Date.now()}.json`;
     const filepath = join(this.logDir, filename);
 

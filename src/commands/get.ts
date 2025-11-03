@@ -62,10 +62,10 @@ export async function getCommand(options: GetOptions): Promise<void> {
 
       if (options.threads) {
         const threadIds = options.threads.split(',').map(s => s.trim());
-        insights = insights.filter(i =>
-          // Check if insight has thread refs directly (if we add them later)
-          (i as any).thread_refs && (i as any).thread_refs.some((tr: string) => threadIds.includes(tr))
-        );
+        insights = insights.filter(i => {
+          const threadRefs = (i as any).thread_refs;
+          return threadRefs && threadRefs.some((tr: string) => threadIds.includes(tr));
+        });
         result.filtered = true;
       }
       

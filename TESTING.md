@@ -101,7 +101,7 @@ npm test tests/cli-integration.test.ts
 - `ace apply` - Applies deltas deterministically
 - `ace apply --dry-run` - Preview mode
 - `ace doctor` - Diagnostics
-- `ace sweep` - Offline learning
+- `ace learn` - Full learning pipeline
 
 ### Full Workflow (`tests/e2e-workflow.test.ts`)
 
@@ -260,7 +260,7 @@ bd create "Another import issue" --labels ace,reflect
 # Work on it, close it...
 
 # 8. Sweep historical beads
-ace sweep --range bd-1..bd-2
+ace learn --beads bd-1,bd-2
 # Expected: Batch analysis, queues insights
 ```
 

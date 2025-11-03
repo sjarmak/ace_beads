@@ -72,9 +72,12 @@ export async function threadReportCommand(options: ThreadReportOptions): Promise
       else if (trace.outcome === 'partial') agg.partial_count++;
 
       // Calculate execution time
-      const execTime = trace.execution_results.reduce((sum: number, exec: any) =>
-        sum + (exec.duration || 0), 0);
-      agg.avg_execution_time = (agg.avg_execution_time * (agg.trace_count - 1) + execTime) / agg.trace_count;
+      const execTime = trace.execution_results.reduce(
+        (sum: number, exec: any) => sum + (exec.duration || 0),
+        0
+      );
+      const totalExecTime = agg.avg_execution_time * (agg.trace_count - 1) + execTime;
+      agg.avg_execution_time = totalExecTime / agg.trace_count;
 
       // Update last activity
       if (trace.timestamp > agg.last_activity) {
@@ -132,12 +135,17 @@ export async function threadReportCommand(options: ThreadReportOptions): Promise
 
       console.log(`Thread: ${thread.thread_id}`);
       console.log(`  Traces: ${thread.trace_count} (${successRate}% success)`);
-      console.log(`  Outcomes: ✅${thread.success_count} ❌${thread.failure_count} ⚠️${thread.partial_count}`);
+      const outcomes =
+        `  Outcomes: ✅${thread.success_count} ❌${thread.failure_count} ` +
+        `⚠️${thread.partial_count}`;
+      console.log(outcomes);
       console.log(`  Avg Exec Time: ${thread.avg_execution_time.toFixed(1)}ms`);
       console.log(`  Last Activity: ${new Date(thread.last_activity).toLocaleString()}`);
 
       if (thread.thread_summary) {
-        console.log(`  Summary: ${thread.thread_summary.substring(0, 60)}${thread.thread_summary.length > 60 ? '...' : ''}`);
+        const preview = thread.thread_summary.substring(0, 60);
+        const suffix = thread.thread_summary.length > 60 ? '...' : '';
+        console.log(`  Summary: ${preview}${suffix}`);
       }
 
       if (thread.top_patterns.length > 0) {
@@ -147,7 +155,9 @@ export async function threadReportCommand(options: ThreadReportOptions): Promise
       console.log('');
     }
 
-    console.log(`💡 Use \`ace trace list --threads <thread_id>\` to view traces for a specific thread
-`);
+    console.log(
+      `💡 Use \`ace trace list --threads <thread_id>\` to view traces for a ` +
+      'specific thread\n'
+    );
   }
 }

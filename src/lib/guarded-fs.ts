@@ -16,15 +16,30 @@ export class GuardedFileSystem {
     this.permissions.push(
       { role: 'generator', operation: 'read', pathPattern: '**/*', allowed: true },
       { role: 'generator', operation: 'write', pathPattern: '**/*', allowed: true },
-      { role: 'generator', operation: 'write', pathPattern: '**/knowledge/AGENTS.md', allowed: false },
-      { role: 'generator', operation: 'write', pathPattern: '**/knowledge/insights.jsonl', allowed: false }
+      {
+        role: 'generator',
+        operation: 'write',
+        pathPattern: '**/knowledge/AGENTS.md',
+        allowed: false,
+      },
+      {
+        role: 'generator',
+        operation: 'write',
+        pathPattern: '**/knowledge/insights.jsonl',
+        allowed: false,
+      }
     );
 
     // Reflector: read-only, can only append to insights.jsonl
     this.permissions.push(
       { role: 'reflector', operation: 'read', pathPattern: '**/*', allowed: true },
       { role: 'reflector', operation: 'write', pathPattern: '**/*', allowed: false },
-      { role: 'reflector', operation: 'write', pathPattern: '**/knowledge/insights.jsonl', allowed: true }
+      {
+        role: 'reflector',
+        operation: 'write',
+        pathPattern: '**/knowledge/insights.jsonl',
+        allowed: true,
+      }
     );
 
     // Curator: read all, write only to knowledge/AGENTS.md

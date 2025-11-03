@@ -11,3 +11,4 @@ knowledge/insights.jsonl
 knowledge/deltas/
 .ace.json
 mcp/
+.test-results.json

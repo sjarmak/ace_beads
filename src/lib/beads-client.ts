@@ -8,6 +8,9 @@ import { dirname, resolve } from 'path';
 
 const execAsync = promisify(exec);
 
+const THREAD_URL_BASE = 'https://ampcode.com/threads/';
+const UNKNOWN_WORKSPACE = 'unknown';
+
 // Stub mode for tests - store issues and dependencies in memory
 const isTestMode = process.env.VITEST === 'true' || process.env.NODE_ENV === 'test';
 
@@ -96,6 +99,12 @@ class BeadsStub {
       .filter(d => d.type === 'discovered-from' && d.target === parentId)
       .map(d => d.source);
   }
+
+  reset(): void {
+    this.issues.clear();
+    this.dependencies = [];
+    this.counter = 1;
+  }
 }
 
 const stub = new BeadsStub();
@@ -126,20 +135,28 @@ export class BeadsClient {
   private readonly notificationPath: string;
 
   constructor(options?: { metadataPath?: string; notificationPath?: string }) {
-    this.ampMetadataPath = options?.metadataPath || resolve(process.cwd(), '.beads/amp_metadata.jsonl');
-    this.notificationPath = options?.notificationPath || resolve(process.cwd(), 'amp_notifications.jsonl');
+    const defaultMetadataPath = resolve(process.cwd(), '.beads/amp_metadata.jsonl');
+    const defaultNotificationPath = resolve(process.cwd(), 'amp_notifications.jsonl');
+    this.ampMetadataPath = options?.metadataPath || defaultMetadataPath;
+    this.notificationPath = options?.notificationPath || defaultNotificationPath;
+  }
+
+  resetStub(): void {
+    if (isTestMode) {
+      stub.reset();
+    }
   }
 
   private captureAmpThreadContext(): AmpThreadMetadata | undefined {
     const threadId = process.env.AMP_THREAD_ID;
     if (!threadId) return undefined;
 
-    const workspaceId = process.env.AMP_WORKSPACE_ID || 'unknown';
+    const workspaceId = process.env.AMP_WORKSPACE_ID || UNKNOWN_WORKSPACE;
     const now = new Date().toISOString();
 
     return {
       thread_id: threadId,
-      thread_url: `https://ampcode.com/threads/${threadId}`,
+      thread_url: `${THREAD_URL_BASE}${threadId}`,
       workspace_id: workspaceId,
       created_by_agent: process.env.ACE_ROLE as 'generator' | 'reflector' | 'curator' | undefined,
       created_in_context: process.env.AMP_MAIN_THREAD_ID ? 'subagent-thread' : 'main-thread',
@@ -184,6 +201,41 @@ export class BeadsClient {
     return undefined;
   }
 
+  private buildCreateCommand(title: string, options?: any): string {
+    let cmd = `bd create "${title}" --json`;
+
+    if (options?.type) cmd += ` -t ${options.type}`;
+    if (options?.priority !== undefined) cmd += ` -p ${options.priority}`;
+    if (options?.description) cmd += ` -d "${options.description}"`;
+    if (options?.assignee) cmd += ` --assignee ${options.assignee}`;
+    if (options?.labels && options.labels.length > 0) {
+      cmd += ` -l ${options.labels.join(',')}`;
+    }
+
+    return cmd;
+  }
+
+  private async attachMetadataAndDeps(
+    issue: BeadIssue,
+    dependencies?: { type: string; target: string }[]
+  ): Promise<void> {
+    const ampMetadata = this.captureAmpThreadContext();
+    if (ampMetadata) {
+      issue.amp_metadata = ampMetadata;
+      await this.saveAmpMetadata(issue.id, ampMetadata);
+    }
+
+    if (dependencies && dependencies.length > 0) {
+      for (const dep of dependencies) {
+        if (isTestMode) {
+          stub.addDependency(issue.id, dep.target, dep.type as any);
+        } else {
+          await this.addDependency(issue.id, dep.target, dep.type as any);
+        }
+      }
+    }
+  }
+
   async createIssue(
     title: string,
     options?: {
@@ -195,46 +247,11 @@ export class BeadsClient {
       dependencies?: { type: string; target: string }[];
     }
   ): Promise<BeadIssue> {
-    if (isTestMode) {
-      const issue = stub.createIssue(title, options);
-      const ampMetadata = this.captureAmpThreadContext();
-      if (ampMetadata) {
-        issue.amp_metadata = ampMetadata;
-        await this.saveAmpMetadata(issue.id, ampMetadata);
-      }
-      if (options?.dependencies && options.dependencies.length > 0) {
-        for (const dep of options.dependencies) {
-          stub.addDependency(issue.id, dep.target, dep.type as any);
-        }
-      }
-      return issue;
-    }
+    const issue = isTestMode
+      ? stub.createIssue(title, options)
+      : JSON.parse((await execAsync(this.buildCreateCommand(title, options))).stdout.trim());
 
-    let cmd = `bd create "${title}" --json`;
-
-    if (options?.type) cmd += ` -t ${options.type}`;
-    if (options?.priority !== undefined) cmd += ` -p ${options.priority}`;
-    if (options?.description) cmd += ` -d "${options.description}"`;
-    if (options?.assignee) cmd += ` --assignee ${options.assignee}`;
-    if (options?.labels && options.labels.length > 0) {
-      cmd += ` -l ${options.labels.join(',')}`;
-    }
-
-    const { stdout } = await execAsync(cmd);
-    const issue = JSON.parse(stdout.trim());
-
-    const ampMetadata = this.captureAmpThreadContext();
-    if (ampMetadata) {
-      issue.amp_metadata = ampMetadata;
-      await this.saveAmpMetadata(issue.id, ampMetadata);
-    }
-
-    if (options?.dependencies && options.dependencies.length > 0) {
-      for (const dep of options.dependencies) {
-        await this.addDependency(issue.id, dep.target, dep.type as any);
-      }
-    }
-
+    await this.attachMetadataAndDeps(issue, options?.dependencies);
     return issue;
   }
 
@@ -305,56 +322,38 @@ export class BeadsClient {
     return Array.isArray(result) ? result[0] : result;
   }
 
+  private async createCompletionNotification(
+    issue: BeadIssue,
+    metadata: AmpThreadMetadata
+  ): Promise<void> {
+    const event: BeadNotificationEvent = {
+      event_id: randomUUID(),
+      timestamp: new Date().toISOString(),
+      bead_id: issue.id,
+      thread_id: metadata.thread_id,
+      event_type: 'bead_completed',
+      payload: {
+        summary: `Issue ${issue.id} "${issue.title}" completed`,
+        action_required: false,
+      },
+    };
+    await this.writeNotification(event);
+  }
+
   async closeIssue(id: string, reason?: string): Promise<BeadIssue> {
     const beforeClose = await this.getIssue(id);
     
-    if (isTestMode) {
-      const issue = stub.closeIssue(id);
-      if (!issue) throw new Error(`Issue ${id} not found`);
-      
-      if (beforeClose.amp_metadata) {
-        const event: BeadNotificationEvent = {
-          event_id: randomUUID(),
-          timestamp: new Date().toISOString(),
-          bead_id: issue.id,
-          thread_id: beforeClose.amp_metadata.thread_id,
-          event_type: 'bead_completed',
-          payload: {
-            summary: `Issue ${issue.id} "${issue.title}" completed`,
-            action_required: false,
-          },
-        };
-        await this.writeNotification(event);
-        issue.amp_metadata = beforeClose.amp_metadata;
-      }
-      
-      return issue;
-    }
+    const issue = isTestMode
+      ? stub.closeIssue(id)
+      : await this.executeCloseCommand(id, reason);
 
-    let cmd = `bd close ${id} --json`;
-    if (reason) cmd += ` --reason "${reason}"`;
-
-    const { stdout } = await execAsync(cmd);
-    const result = JSON.parse(stdout.trim());
-    const issue = Array.isArray(result) ? result[0] : result;
+    if (!issue) throw new Error(`Issue ${id} not found`);
 
     if (beforeClose.amp_metadata) {
-      const event: BeadNotificationEvent = {
-        event_id: randomUUID(),
-        timestamp: new Date().toISOString(),
-        bead_id: issue.id,
-        thread_id: beforeClose.amp_metadata.thread_id,
-        event_type: 'bead_completed',
-        payload: {
-          summary: `Issue ${issue.id} "${issue.title}" completed`,
-          action_required: false,
-        },
-      };
-      await this.writeNotification(event);
+      await this.createCompletionNotification(issue, beforeClose.amp_metadata);
       issue.amp_metadata = beforeClose.amp_metadata;
     }
 
-    // Trigger ACE learning cycle in the background (non-blocking) - skip in test mode
     if (!isTestMode) {
       this.triggerACELearningCycle(id).catch((err) => {
         console.error(`[BeadsClient] ACE learning cycle failed for ${id}:`, err);
@@ -364,13 +363,24 @@ export class BeadsClient {
     return issue;
   }
 
+  private async executeCloseCommand(id: string, reason?: string): Promise<BeadIssue> {
+    let cmd = `bd close ${id} --json`;
+    if (reason) cmd += ` --reason "${reason}"`;
+
+    const { stdout } = await execAsync(cmd);
+    const result = JSON.parse(stdout.trim());
+    return Array.isArray(result) ? result[0] : result;
+  }
+
   private async triggerACELearningCycle(beadId: string): Promise<void> {
     console.log(`[BeadsClient] Triggering ACE learning cycle for bead ${beadId}...`);
+    
+    const command = `ace learn --beads ${beadId}`;
     
     // For E2E tests, run synchronously
     if (process.env.ACE_E2E_SYNC === 'true') {
       try {
-        execSync('npx tsx scripts/ace-learn-cycle.ts', { 
+        execSync(command, { 
           cwd: process.cwd(),
           stdio: 'inherit'
         });
@@ -380,8 +390,8 @@ export class BeadsClient {
         throw error;
       }
     } else {
-      // Run the learning cycle script in the background
-      exec('npx tsx scripts/ace-learn-cycle.ts', { cwd: process.cwd() }, (error, stdout, stderr) => {
+      // Run the learning cycle in the background
+      exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
         if (error) {
           console.error(`[BeadsClient] ACE learning cycle error: ${error.message}`);
           return;

@@ -154,6 +154,76 @@ After closing, AGENTS.md will have a new bullet like:
 5. **Trust the automation** - ACE captures and learns automatically, you don't need manual commands
 6. **Tests must pass** - You cannot close beads with failing tests (enforced automatically)
 
+## Critical: Preventing Infinite Loops
+
+### ACELoop Must Not Be Used in CLI Commands
+
+**NEVER use ACELoop in CLI commands like learn, analyze, apply, etc.**
+
+ACELoop spawns Amp subagents to execute tasks. When used in `ace learn` (which is auto-called by `bd close`), it creates infinite recursion:
+- bd close → ace learn → ACELoop.run() → spawns subagent → subagent runs generator → generator calls bd close → infinite loop
+
+**Correct pattern for learn command:**
+```typescript
+// ✅ CORRECT: Simple orchestration without subagents
+export async function learnCommand(options) {
+  await analyzeCommand(options);  // Direct function call
+  await applyCommand(options);     // Direct function call  
+  await cleanupStep(options);      // Direct function call
+}
+```
+
+**Incorrect pattern:**
+```typescript
+// ❌ WRONG: Spawns infinite subagents
+export async function learnCommand(options) {
+  const loop = new ACELoop();
+  await loop.run(taskId, ...);  // NEVER do this in CLI commands
+}
+```
+
+### When ACELoop Is Appropriate
+- Research/experimental workflows that are NOT called by bd hooks
+- Standalone learning experiments
+- Never in production CLI commands
+
+## Code Quality Standards
+
+### Write Minimal, Clear Code
+
+**Code Quality Expectations**
+- Each module must have a **single, clearly stated responsibility**
+- Functions should be **short** (ideally under 30 lines) and focused on one task
+- Variable, function and class names must **convey intent** without needing comments
+- Avoid "clever" or opaque logic — **prefer clarity over cleverness**
+- Comments should explain *why* the code does something unusual, not *what* it does
+
+**Modularity & Structure**
+- **Reuse logic** via functions or classes rather than duplicating it
+- A module should **not depend on global state** or hidden side-effects
+- APIs across modules must use **clear, minimal interfaces** with typed inputs and outputs
+
+**Readability & Maintenance**
+- Limit line length to **100 characters**; use whitespace and blank lines to separate conceptual blocks
+- Use **consistent formatting**, indentation, import grouping
+- **Magic numbers and hard-coded literals** must be replaced by named constants
+- Documentation must describe module purpose, class intent and function signature (parameters, return, side-effects)
+
+**Testing & Review**
+- Every function/class must be covered by **unit tests** verifying expected behavior, error cases, and side-effects
+- Pull requests must be **scoped to one concern**; reviewers must validate readability, modularity and interface clarity
+
+### Implementation Checklist
+
+Before submitting code, verify:
+- ✅ Each function does **one thing** and is under 30 lines
+- ✅ Names are **self-explanatory** (no cryptic abbreviations)
+- ✅ No **duplicated logic** (extract to shared functions)
+- ✅ No **magic numbers** (use named constants)
+- ✅ **Unit tests** exist for all functions
+- ✅ Code is **formatted consistently** (run linter)
+- ✅ **Comments explain "why"**, not "what"
+
 ## Files and Directories
 
 - `AGENTS.md` - This file, contains learned patterns

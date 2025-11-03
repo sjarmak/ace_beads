@@ -1,0 +1,23 @@
+[
+  {
+    "pattern": "Successful execution with empty execution_results array",
+    "evidence": "Trace 7ef51d46 shows outcome:success but execution_results is empty, suggesting auto-capture may not have recorded test details",
+    "recommendation": "Verify auto-capture hooks are properly recording test execution details, not just outcome status",
+    "confidence": 0.45,
+    "delta": null
+  },
+  {
+    "pattern": "Success traces provide limited learning signal",
+    "evidence": "Single successful trace with no errors, no discovered issues, and no execution details to analyze",
+    "recommendation": "Success traces should be logged for completeness but prioritize learning from failure traces with detailed error context",
+    "confidence": 0.50,
+    "delta": null
+  },
+  {
+    "pattern": "Auto-captured test runs may complete without detailed metrics",
+    "evidence": "Task description 'Auto-captured test run' completed successfully but lacks test count, duration, or pass/fail breakdown",
+    "recommendation": "Enhance auto-capture to include test metrics (total tests, passed, failed, duration) even on success",
+    "confidence": 0.40,
+    "delta": null
+  }
+]

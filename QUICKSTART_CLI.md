@@ -145,10 +145,10 @@ Learn from historical beads in bulk:
 
 ```bash
 # Sweep a range
-ace sweep --range bd-100..bd-200
+ace learn --beads bd-100,bd-101,bd-102
 
 # Sweep all closed beads with ace labels
-ace sweep
+ace learn --beads <bead-ids>
 ```
 
 ### Queue Management
@@ -212,7 +212,7 @@ ace capture --bead task-123 --exec errors.json
 ace analyze batch --beads task-123,task-456
 
 # Apply insights
-ace update --min-confidence 0.8
+ace learn --min-confidence 0.8
 ```
 
 ## Troubleshooting
@@ -291,7 +291,7 @@ Result: AGENTS.md now has a bullet about ESM import extensions.
 
 ```bash
 # Analyze last 50 closed beads
-ace sweep --range bd-200..bd-250
+ace learn --beads <bead-ids> --range bd-200..bd-250
 
 # Review insights
 ace delta ls
@@ -336,7 +336,7 @@ ace apply
 | Preview learning | `ace review` |
 | Apply deltas | `ace apply` |
 | List queue | `ace delta ls` |
-| Offline sweep | `ace sweep` |
+| Offline sweep | `ace learn --beads <bead-ids>` |
 
 ## Support
 

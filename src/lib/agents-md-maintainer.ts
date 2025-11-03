@@ -17,7 +17,8 @@ export class AgentsMdMaintainer {
     const config = loadConfig();
     this.maxLines = maxLines;
     this.agentsPath = agentsPath ?? config.agentsPath;
-    this.archivePath = archivePath ?? this.agentsPath.replace('AGENTS.md', 'knowledge/AGENTS.archive.md');
+    this.archivePath =
+      archivePath ?? this.agentsPath.replace('AGENTS.md', 'knowledge/AGENTS.archive.md');
   }
 
   /**
@@ -31,7 +32,9 @@ export class AgentsMdMaintainer {
       return { bulletsMoved: 0, linesReduced: 0, archivePath: this.archivePath };
     }
 
-    console.log(`[Maintainer] AGENTS.md has ${lines.length} lines, exceeds limit of ${this.maxLines}`);
+    console.log(
+      `[Maintainer] AGENTS.md has ${lines.length} lines, exceeds limit of ${this.maxLines}`
+    );
     
     // Use KnowledgeAnalyzer to identify archival candidates
     const analyzer = new KnowledgeAnalyzer();
@@ -82,7 +85,10 @@ export class AgentsMdMaintainer {
     const newLines = updatedContent.split('\n').length;
     const linesReduced = lines.length - newLines;
 
-    console.log(`[Maintainer] Archived ${candidatesToArchive.length} bullets, reduced from ${lines.length} to ${newLines} lines`);
+    console.log(
+      `[Maintainer] Archived ${candidatesToArchive.length} bullets, ` +
+      `reduced from ${lines.length} to ${newLines} lines`
+    );
     
     return {
       bulletsMoved: candidatesToArchive.length,
@@ -93,10 +99,16 @@ export class AgentsMdMaintainer {
 
   private async archiveBullets(candidates: ArchivalCandidate[]): Promise<void> {
     const timestamp = new Date().toISOString();
-    const header = `\n## Archived ${timestamp}\n\nReason: Archived to keep AGENTS.md under ${this.maxLines} lines\n\n`;
+    const header =
+      `\n## Archived ${timestamp}\n\n` +
+      `Reason: Archived to keep AGENTS.md under ${this.maxLines} lines\n\n`;
     
     if (!existsSync(this.archivePath)) {
-      writeFileSync(this.archivePath, `# AGENTS.md Archive\n\nThis file contains bullets archived from AGENTS.md to maintain the ${this.maxLines}-line limit.\n${header}`, 'utf-8');
+      const archiveContent =
+        `# AGENTS.md Archive\n\n` +
+        `This file contains bullets archived from AGENTS.md to maintain ` +
+        `the ${this.maxLines}-line limit.\n${header}`;
+      writeFileSync(this.archivePath, archiveContent, 'utf-8');
     } else {
       appendFileSync(this.archivePath, header, 'utf-8');
     }
@@ -113,10 +125,15 @@ export class AgentsMdMaintainer {
 
     // Write to archive grouped by section
     for (const [section, sectionCandidates] of bySection) {
-      appendFileSync(this.archivePath, `### ${section} (${sectionCandidates.length} bullets)\n\n`, 'utf-8');
+      const sectionHeader = `### ${section} (${sectionCandidates.length} bullets)\n\n`;
+      appendFileSync(this.archivePath, sectionHeader, 'utf-8');
       for (const candidate of sectionCandidates) {
-        const bulletLine = `[Bullet #${candidate.bullet.id}, helpful:${candidate.bullet.helpfulCount}, harmful:${candidate.bullet.harmfulCount}] ${candidate.bullet.text}`;
-        appendFileSync(this.archivePath, `${bulletLine} [Archived reason: ${candidate.reason}]\n`, 'utf-8');
+        const bulletLine =
+          `[Bullet #${candidate.bullet.id}, ` +
+          `helpful:${candidate.bullet.helpfulCount}, ` +
+          `harmful:${candidate.bullet.harmfulCount}] ${candidate.bullet.text}`;
+        const archiveLine = `${bulletLine} [Archived reason: ${candidate.reason}]\n`;
+        appendFileSync(this.archivePath, archiveLine, 'utf-8');
       }
       appendFileSync(this.archivePath, '\n', 'utf-8');
     }

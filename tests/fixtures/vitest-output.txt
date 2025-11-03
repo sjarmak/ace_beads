@@ -1,0 +1,27 @@
+ FAIL  tests/error-hooks.test.ts > ErrorHooks > should parse tsc errors
+AssertionError: expected 0 to equal 2
+ ❯ tests/error-hooks.test.ts:45:23
+    43|     const errors = hooks.parseTscErrors(output);
+    44|     
+    45|     expect(errors.length).toEqual(2);
+      |                       ^
+    46|   });
+    47| 
+
+  at tests/error-hooks.test.ts:45:23
+
+ FAIL  tests/Generator.test.ts > Generator > should record execution
+Error: Cannot read property 'push' of undefined
+ ❯ src/lib/Generator.ts:152:38
+    150|   }
+    151| 
+    152|   this.currentTrace.execution_results.push(result);
+       |                                      ^
+    153| 
+
+  at src/lib/Generator.ts:152:38
+  at Generator.recordExecution (src/lib/Generator.ts:152:38)
+  at tests/Generator.test.ts:67:18
+
+Test Files  2 failed (2)
+     Tests  2 failed (2)

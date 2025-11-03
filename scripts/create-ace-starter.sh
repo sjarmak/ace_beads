@@ -29,8 +29,7 @@ cp "$ACE_ROOT/agents/Curator.ts" agents/ 2>/dev/null || echo "Note: Curator.ts n
 cp "$ACE_ROOT/mcp/types.ts" mcp/ 2>/dev/null || echo "Note: types.ts not found"
 cp "$ACE_ROOT/mcp/beads-client.ts" mcp/ 2>/dev/null || echo "Note: beads-client.ts not found"
 
-# Scripts
-cp "$ACE_ROOT/scripts/ace-learn-cycle.ts" scripts/ 2>/dev/null || echo "Note: ace-learn-cycle.ts not found"
+# Scripts (ACE learning now uses CLI: ace learn --beads <id>)
 
 # 3. Initialize log files
 echo "📝 Creating log files..."
@@ -98,7 +97,6 @@ fi
 echo "📝 Updating package.json..."
 npm pkg set type="module"
 npm pkg set scripts.build="tsc"
-npm pkg set scripts.ace-learn="tsx scripts/ace-learn-cycle.ts"
 
 # 7. Install dependencies
 echo "📥 Installing dependencies..."
@@ -124,13 +122,13 @@ echo ""
 echo "Next steps:"
 echo "  1. Create a task: bd create 'Your first task' -t task -p 1"
 echo "  2. Work on it with Amp"
-echo "  3. Run learning: npm run ace-learn"
-echo "  4. Check AGENTS.md for new patterns"
+echo "  3. Close bead: bd close <id> (auto-triggers learning)"
+echo "  4. Or manually: ace learn --beads <id>"
+echo "  5. Check AGENTS.md for new patterns"
 echo ""
 echo "Files created:"
 echo "  - agents/Generator.ts, Reflector.ts, Curator.ts"
 echo "  - mcp/types.ts, beads-client.ts"
-echo "  - scripts/ace-learn-cycle.ts"
 echo "  - logs/execution_traces.jsonl, insights.jsonl"
 echo "  - AGENTS.md (if new)"
 echo ""

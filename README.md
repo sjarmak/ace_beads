@@ -88,10 +88,8 @@ Beads (bd) → Reflector → Delta Queue → Curator → AGENTS.md
 |---------|---------|
 | `ace init` | Initialize workspace |
 | `ace status` | Show system status |
-| `ace learn` | Run full learning pipeline |
-| `ace review` | Preview without applying |
+| `ace learn` | Run full learning pipeline (analyze + apply + cleanup) |
 | `ace apply` | Apply queued deltas |
-| `ace sweep` | Offline batch learning |
 | `ace delta ls` | List queue |
 | `ace amp-config` | Manage directory-level Amp settings |
 | `ace doctor` | Run diagnostics |
@@ -207,11 +205,10 @@ ACE_Beads_Amp/
 
 ### Offline Sweeps
 
-Learn from historical closed beads in bulk:
+Learn from completed work:
 
 ```bash
-ace sweep --range bd-100..bd-200
-ace sweep  # All closed beads with ace labels
+ace learn --beads bd-100,bd-101,bd-102
 ```
 
 ### Custom Confidence
@@ -250,7 +247,7 @@ npm run build         # Build CLI
 
 ## MCP Server (Optional)
 
-While ACE is primarily CLI-based, an MCP server is available for multi-client use (Amp + Cline + Claude Desktop):
+While ACE is primarily CLI-based, an MCP server is available for Amp integration:
 
 ```bash
 ace-mcp-server  # Start MCP server

@@ -49,7 +49,9 @@ export class ReviewRouter {
     this.config = { ...DEFAULT_ROUTING_CONFIG, ...config };
   }
 
-  getDestination(eventType: keyof Omit<ReviewRoutingConfig, 'reviewFilePath' | 'reviewBeadPrefix'>): ReviewDestination {
+  getDestination(
+    eventType: keyof Omit<ReviewRoutingConfig, 'reviewFilePath' | 'reviewBeadPrefix'>
+  ): ReviewDestination {
     return this.config[eventType];
   }
 

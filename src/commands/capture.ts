@@ -1,7 +1,10 @@
 import { readFileSync, appendFileSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { loadConfig } from '../lib/config.js';
-import type { ExecutionResult } from '../lib/mcp-types.js';
+import { ThreadIndexer } from '../lib/thread-indexer.js';
+import type { ExecutionTrace, ThreadCitation, ExecutionResult } from '../lib/types.js';
+
+const SUMMARY_PREVIEW_LEN = 60;
 
 interface CaptureOptions {
   bead: string;
@@ -13,26 +16,6 @@ interface CaptureOptions {
   threadSummary?: string;
   threadCitations?: string;
   json?: boolean;
-}
-
-interface ThreadCitation {
-  thread_id: string;
-  message_id?: string;
-  quote: string;
-  rationale: string;
-}
-
-interface ExecutionTrace {
-  trace_id: string;
-  timestamp: string;
-  bead_id: string;
-  task_description: string;
-  execution_results: ExecutionResult[];
-  discovered_issues: string[];
-  outcome: 'success' | 'failure' | 'partial';
-  thread_refs?: string[];
-  thread_summary?: string;
-  thread_citations?: ThreadCitation[];
 }
 
 /**
@@ -58,82 +41,128 @@ function parseThreadRef(ref: string): string {
   throw new Error(`Invalid thread reference: ${ref}. Expected thread ID (T-xxx...) or URL.`);
 }
 
-export async function captureCommand(options: CaptureOptions): Promise<void> {
-  const config = loadConfig();
-  
-  // Parse executions
-  let executions: ExecutionResult[] = [];
-  if (options.exec) {
-    try {
-      const content = options.exec === '-' 
-        ? readFileSync(0, 'utf-8')  // stdin
-        : readFileSync(options.exec, 'utf-8');
-      executions = JSON.parse(content);
-    } catch (error) {
-      throw new Error(`Failed to parse execution JSON: ${error instanceof Error ? error.message : String(error)}`);
-    }
+function parseExecutions(execPath?: string): ExecutionResult[] {
+  if (!execPath) {
+    return [];
   }
-  
-  // Parse discovered issues
-  const discoveredIssues = options.discovered 
-    ? options.discovered.split(',').map(s => s.trim())
-    : [];
-  
-  // Parse thread references
-  const threadRefs = options.threadRefs
-    ? options.threadRefs.split(',').map(ref => parseThreadRef(ref))
+
+  try {
+    const content = execPath === '-' 
+      ? readFileSync(0, 'utf-8')
+      : readFileSync(execPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse execution JSON: ${errMsg}`);
+  }
+}
+
+function parseDiscoveredIssues(discovered?: string): string[] {
+  return discovered ? discovered.split(',').map(s => s.trim()) : [];
+}
+
+function parseThreadRefs(threadRefs?: string): string[] | undefined {
+  return threadRefs
+    ? threadRefs.split(',').map(ref => parseThreadRef(ref))
     : undefined;
-  
-  // Parse thread citations
-  let threadCitations: ThreadCitation[] | undefined;
-  if (options.threadCitations) {
-    try {
-      threadCitations = JSON.parse(options.threadCitations);
-    } catch (error) {
-      throw new Error(`Failed to parse thread citations JSON: ${error instanceof Error ? error.message : String(error)}`);
-    }
+}
+
+function parseThreadCitations(citationsJson?: string): ThreadCitation[] | undefined {
+  if (!citationsJson) {
+    return undefined;
   }
-  
-  // Create trace
-  const trace: ExecutionTrace = {
+
+  try {
+    return JSON.parse(citationsJson);
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse thread citations JSON: ${errMsg}`);
+  }
+}
+
+function createTrace(options: CaptureOptions, parsedData: {
+  executions: ExecutionResult[];
+  discoveredIssues: string[];
+  threadRefs?: string[];
+  threadCitations?: ThreadCitation[];
+}): ExecutionTrace {
+  return {
     trace_id: randomUUID(),
     timestamp: new Date().toISOString(),
     bead_id: options.bead,
     task_description: options.desc || options.bead,
-    execution_results: executions,
-    discovered_issues: discoveredIssues,
+    execution_results: parsedData.executions,
+    discovered_issues: parsedData.discoveredIssues,
     outcome: options.outcome || 'success',
-    ...(threadRefs && { thread_refs: threadRefs }),
+    ...(parsedData.threadRefs && { thread_refs: parsedData.threadRefs }),
     ...(options.threadSummary && { thread_summary: options.threadSummary }),
-    ...(threadCitations && { thread_citations: threadCitations })
+    ...(parsedData.threadCitations && { thread_citations: parsedData.threadCitations })
   };
-  
-  // Write to traces file
-  appendFileSync(config.tracesPath, JSON.stringify(trace) + '\n', 'utf-8');
-  
-  // Output result
+}
+
+function outputTrace(trace: ExecutionTrace, options: CaptureOptions, tracesPath: string): void {
   if (options.json) {
     console.log(JSON.stringify({
       traceId: trace.trace_id,
       timestamp: trace.timestamp,
       written: true,
-      executionCount: executions.length,
-      discoveredCount: discoveredIssues.length,
-      threadRefsCount: threadRefs?.length || 0,
-      threadCitationsCount: threadCitations?.length || 0
+      executionCount: trace.execution_results.length,
+      discoveredCount: trace.discovered_issues.length,
+      threadRefsCount: trace.thread_refs?.length || 0,
+      threadCitationsCount: trace.thread_citations?.length || 0
     }, null, 2));
   } else {
     console.log(`✅ Trace captured: ${trace.trace_id}`);
     console.log(`   Bead: ${trace.bead_id}`);
-    console.log(`   Executions: ${executions.length}`);
-    console.log(`   Discovered: ${discoveredIssues.length}`);
-    if (threadRefs && threadRefs.length > 0) {
-      console.log(`   Thread refs: ${threadRefs.length}`);
+    console.log(`   Executions: ${trace.execution_results.length}`);
+    console.log(`   Discovered: ${trace.discovered_issues.length}`);
+    if (trace.thread_refs && trace.thread_refs.length > 0) {
+      console.log(`   Thread refs: ${trace.thread_refs.length}`);
     }
     if (options.threadSummary) {
-      console.log(`   Thread context: ${options.threadSummary.substring(0, 60)}${options.threadSummary.length > 60 ? '...' : ''}`);
+      const preview = options.threadSummary.substring(0, SUMMARY_PREVIEW_LEN);
+      const suffix = options.threadSummary.length > SUMMARY_PREVIEW_LEN ? '...' : '';
+      console.log(`   Thread context: ${preview}${suffix}`);
     }
     console.log(`   Outcome: ${trace.outcome}`);
-    console.log(`   Saved to: ${config.tracesPath}`);
+    console.log(`   Saved to: ${tracesPath}`);
   }
+}
+
+export async function captureCommand(options: CaptureOptions): Promise<void> {
+  const config = loadConfig();
+  
+  const executions = parseExecutions(options.exec);
+  const discoveredIssues = parseDiscoveredIssues(options.discovered);
+  const threadRefs = parseThreadRefs(options.threadRefs);
+  const threadCitations = parseThreadCitations(options.threadCitations);
+  
+  const trace = createTrace(options, {
+    executions,
+    discoveredIssues,
+    threadRefs,
+    threadCitations
+  });
+  
+  appendFileSync(config.tracesPath, JSON.stringify(trace) + '\n', 'utf-8');
+  
+  if (threadRefs && threadRefs.length > 0) {
+    const indexer = new ThreadIndexer();
+    for (const threadId of threadRefs) {
+      await indexer.indexThread({
+        threadId,
+        beadId: options.bead,
+        ampMetadata: process.env.AMP_THREAD_ID ? {
+          thread_url: `https://ampcode.com/threads/${threadId}`,
+          workspace_id: process.env.AMP_WORKSPACE_ID,
+          created_by_agent: process.env.ACE_ROLE,
+          created_in_context: process.env.AMP_MAIN_THREAD_ID ? 'subagent-thread' : 'main-thread',
+          main_thread_id: process.env.AMP_MAIN_THREAD_ID,
+          parent_thread_id: process.env.AMP_PARENT_THREAD_ID,
+        } : undefined,
+      });
+    }
+  }
+  
+  outputTrace(trace, options, config.tracesPath);
 }

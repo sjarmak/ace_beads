@@ -17,6 +17,14 @@ export interface ExecutionResult {
   timestamp: string;
   runner?: string;
   command?: string;
+  metrics?: {
+    tests_passed?: number;
+    tests_failed?: number;
+    test_files_passed?: number;
+    test_files_failed?: number;
+    duration_ms?: number;
+    [key: string]: number | undefined;
+  };
 }
 
 export interface NormalizedError {
@@ -29,27 +37,13 @@ export interface NormalizedError {
   severity: 'error' | 'warning';
 }
 
-export interface ExecutionTrace {
-  trace_id: string;
-  timestamp: string;
-  bead_id: string;
-  task_description: string;
-  execution_results: ExecutionResult[];
-  discovered_issues: string[];
-  outcome: 'success' | 'failure' | 'partial';
-  thread_refs?: string[];
-  thread_summary?: string;
-  thread_citations?: ThreadCitation[];
-}
+export type {
+  ExecutionTrace,
+  ThreadCitation,
+  Insight,
+} from './types.js';
 
-export interface ThreadCitation {
-  thread_id: string;
-  message_id?: string;
-  quote: string;
-  rationale: string;
-}
-
-export interface Insight {
+export interface LegacyInsight {
   id: string;
   timestamp: string;
   taskId: string;
@@ -180,7 +174,6 @@ export interface ACEConfig {
     labels: string[];
     autoLink: boolean;
   };
-  mcpServers?: MCPServerConfig;
 }
 
 export interface InitOptions {

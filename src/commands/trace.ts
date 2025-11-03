@@ -75,7 +75,8 @@ export async function traceListCommand(options: TraceListOptions): Promise<void>
   const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : NaN;
   
   if (!Number.isFinite(limit)) {
-    const err: any = new Error(`Invalid --limit ${options.limit}. Must be a positive number.`);
+    const errMsg = `Invalid --limit ${options.limit}. Must be a positive number.`;
+    const err: any = new Error(errMsg);
     err.code = 'INVALID_ARGUMENT';
     throw err;
   }
@@ -112,7 +113,9 @@ export async function traceListCommand(options: TraceListOptions): Promise<void>
   // Filter by thread IDs if specified
   if (options.threads && options.threads.length > 0) {
     const threadSet = new Set(options.threads);
-    traces = traces.filter(t => t.thread_refs && t.thread_refs.some(tr => threadSet.has(tr)));
+    traces = traces.filter(t =>
+      t.thread_refs && t.thread_refs.some(tr => threadSet.has(tr))
+    );
   }
   
   if (options.json) {
@@ -135,7 +138,9 @@ export async function traceListCommand(options: TraceListOptions): Promise<void>
     console.log(`\n📋 Recent Execution Traces (${traces.length} shown):\n`);
     
     for (const trace of traces) {
-      const outcomeEmoji = trace.outcome === 'success' ? '✅' : trace.outcome === 'failure' ? '❌' : '⚠️';
+      const outcomeEmoji =
+        trace.outcome === 'success' ? '✅' :
+        trace.outcome === 'failure' ? '❌' : '⚠️';
       const timestamp = new Date(trace.timestamp).toLocaleString();
 
       console.log(`${outcomeEmoji} ${trace.trace_id}`);
@@ -143,14 +148,19 @@ export async function traceListCommand(options: TraceListOptions): Promise<void>
       console.log(`   Task: ${trace.task_description}`);
       console.log(`   Time: ${timestamp}`);
       console.log(`   Outcome: ${trace.outcome}`);
-      console.log(`   Executions: ${trace.execution_results.length}, Discovered: ${trace.discovered_issues.length}`);
+      const summary =
+        `   Executions: ${trace.execution_results.length}, ` +
+        `Discovered: ${trace.discovered_issues.length}`;
+      console.log(summary);
 
       if (trace.thread_refs && trace.thread_refs.length > 0) {
         console.log(`   Threads: ${trace.thread_refs.join(', ')}`);
       }
 
       if (trace.thread_summary) {
-        console.log(`   Thread Context: ${trace.thread_summary.substring(0, 60)}${trace.thread_summary.length > 60 ? '...' : ''}`);
+        const preview = trace.thread_summary.substring(0, 60);
+        const suffix = trace.thread_summary.length > 60 ? '...' : '';
+        console.log(`   Thread Context: ${preview}${suffix}`);
       }
 
       console.log('');
@@ -164,7 +174,10 @@ export async function traceListCommand(options: TraceListOptions): Promise<void>
  * Stream search for a trace by ID without loading entire file.
  * Stops reading as soon as the trace is found.
  */
-async function findTraceById(filePath: string, traceId: string): Promise<ExecutionTrace | undefined> {
+async function findTraceById(
+  filePath: string,
+  traceId: string
+): Promise<ExecutionTrace | undefined> {
   return new Promise((resolve, reject) => {
     const stream = createReadStream(filePath, { encoding: 'utf-8' });
     const rl = createInterface({ input: stream, crlfDelay: Infinity });
@@ -230,7 +243,9 @@ export async function traceShowCommand(traceId: string, options: TraceShowOption
   if (options.json) {
     console.log(JSON.stringify(trace, null, 2));
   } else {
-    const outcomeEmoji = trace.outcome === 'success' ? '✅' : trace.outcome === 'failure' ? '❌' : '⚠️';
+    const outcomeEmoji =
+      trace.outcome === 'success' ? '✅' :
+      trace.outcome === 'failure' ? '❌' : '⚠️';
     const timestamp = new Date(trace.timestamp).toLocaleString();
     
     console.log(`\n${outcomeEmoji} Execution Trace: ${trace.trace_id}\n`);
@@ -277,8 +292,12 @@ export async function traceShowCommand(traceId: string, options: TraceShowOption
         if (exec.errors.length > 0) {
           console.log(`   Errors: ${exec.errors.length}`);
           exec.errors.forEach(err => {
-            const severityBadge = err.severity === 'error' ? '❌' : err.severity === 'warning' ? '⚠️' : 'ℹ️';
-            console.log(`     ${severityBadge} [${err.tool}] ${err.file}:${err.line}${err.column ? `:${err.column}` : ''}`);
+            const severityBadge =
+              err.severity === 'error' ? '❌' :
+              err.severity === 'warning' ? '⚠️' : 'ℹ️';
+            const location =
+              `${err.file}:${err.line}${err.column ? `:${err.column}` : ''}`;
+            console.log(`     ${severityBadge} [${err.tool}] ${location}`);
             console.log(`        ${err.message}`);
           });
         }

@@ -44,7 +44,9 @@ function getAssetName(): string {
   } else if (architecture === 'arm64') {
     archName = 'arm64';
   } else {
-    throw new Error(`Unsupported architecture: ${architecture}. Beads supports x64 and arm64 only.`);
+    const errorMsg = `Unsupported architecture: ${architecture}.` +
+      ` Beads supports x64 and arm64 only.`;
+    throw new Error(errorMsg);
   }
   
   return `bd-${osName}-${archName}`;
@@ -138,14 +140,16 @@ async function installBeads(): Promise<void> {
   
   const asset = release.assets.find((a: any) => a.name === assetName);
   if (!asset) {
-    throw new Error(`No release found for ${assetName}. Available: ${release.assets.map((a: any) => a.name).join(', ')}`);
+    const available = release.assets.map((a: any) => a.name).join(', ');
+    throw new Error(`No release found for ${assetName}. Available: ${available}`);
   }
   
   console.log(`📦 Downloading Beads from ${asset.browser_download_url}...`);
   await downloadFile(asset.browser_download_url, installPath);
   
   console.log(`✅ Beads installed to ${installPath}`);
-  console.log(`\n⚠️  Add ${join(homedir(), '.local', 'bin')} to your PATH if not already present.`);
+  const localBinPath = join(homedir(), '.local', 'bin');
+  console.log(`\n⚠️  Add ${localBinPath} to your PATH if not already present.`);
   console.log(`   Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):`);
   console.log(`   export PATH="$HOME/.local/bin:$PATH"\n`);
 }
@@ -159,7 +163,8 @@ export async function ensureBeadsInstalled(): Promise<void> {
   const shouldInstall = await promptUser('Install Beads now? (y/N): ');
   
   if (!shouldInstall) {
-    console.error('\n❌ Beads is required to use ACE. Install manually from: https://github.com/steveyegge/beads');
+    const installUrl = 'https://github.com/steveyegge/beads';
+    console.error(`\n❌ Beads is required to use ACE. Install manually from: ${installUrl}`);
     process.exit(6);
   }
   
@@ -168,11 +173,14 @@ export async function ensureBeadsInstalled(): Promise<void> {
     
     if (!isBdAvailable()) {
       const installPath = getInstallPath();
-      console.log(`\n⚠️  Beads installed but not in PATH. Please add ${join(homedir(), '.local', 'bin')} to PATH and retry.`);
+      const localBinPath = join(homedir(), '.local', 'bin');
+      console.log(`\n⚠️  Beads installed but not in PATH.` +
+        ` Please add ${localBinPath} to PATH and retry.`);
       process.exit(6);
     }
   } catch (error) {
-    console.error(`\n❌ Failed to install Beads: ${error instanceof Error ? error.message : String(error)}`);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`\n❌ Failed to install Beads: ${errorMsg}`);
     console.error('Please install manually from: https://github.com/steveyegge/beads');
     process.exit(6);
   }
@@ -189,7 +197,8 @@ export function initBeadsIfNeeded(quiet = false): void {
         console.log('✅ Beads initialized');
       }
     } catch (error) {
-      console.error(`❌ Failed to initialize Beads: ${error instanceof Error ? error.message : String(error)}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Failed to initialize Beads: ${errorMsg}`);
       process.exit(3);
     }
   }

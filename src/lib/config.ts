@@ -26,67 +26,78 @@ const DEFAULT_CONFIG: ACEConfig = {
   },
 };
 
-export function loadConfig(flags: Partial<ACEConfig> = {}, cwd?: string): ACEConfig {
-  const workingDir = cwd || process.cwd();
-  
-  // Start with defaults
-  let config = { ...DEFAULT_CONFIG };
-  
-  // Load user config (~/.config/ace/config.json)
+function loadUserConfig(): Partial<ACEConfig> | null {
   const userConfigPath = join(homedir(), '.config', 'ace', 'config.json');
-  if (existsSync(userConfigPath)) {
-    try {
-      const userConfig = JSON.parse(readFileSync(userConfigPath, 'utf-8'));
-      config = { ...config, ...userConfig };
-    } catch (error) {
-      console.error(`Warning: Failed to parse user config at ${userConfigPath}`);
-    }
-  }
+  if (!existsSync(userConfigPath)) return null;
   
-  // Load project config (.ace.json)
+  try {
+    return JSON.parse(readFileSync(userConfigPath, 'utf-8'));
+  } catch (error) {
+    console.error(`Warning: Failed to parse user config at ${userConfigPath}`);
+    return null;
+  }
+}
+
+function loadProjectConfig(workingDir: string): Partial<ACEConfig> | null {
   const projectConfigPath = join(workingDir, '.ace.json');
-  if (existsSync(projectConfigPath)) {
-    try {
-      const projectConfig = JSON.parse(readFileSync(projectConfigPath, 'utf-8'));
-      config = { ...config, ...projectConfig };
-    } catch (error) {
-      console.error(`Warning: Failed to parse project config at ${projectConfigPath}`);
-    }
-  }
+  if (!existsSync(projectConfigPath)) return null;
   
-  // Apply environment variables
-  if (process.env.ACE_AGENTS_PATH) {
-    config.agentsPath = process.env.ACE_AGENTS_PATH;
+  try {
+    return JSON.parse(readFileSync(projectConfigPath, 'utf-8'));
+  } catch (error) {
+    console.error(`Warning: Failed to parse project config at ${projectConfigPath}`);
+    return null;
   }
-  if (process.env.ACE_LOGS_DIR) {
-    config.logsDir = process.env.ACE_LOGS_DIR;
-  }
-  if (process.env.ACE_INSIGHTS_PATH) {
-    config.insightsPath = process.env.ACE_INSIGHTS_PATH;
-  }
-  if (process.env.ACE_TRACES_PATH) {
-    config.tracesPath = process.env.ACE_TRACES_PATH;
-  }
-  if (process.env.ACE_MAX_DELTAS) {
-    config.maxDeltas = parseInt(process.env.ACE_MAX_DELTAS, 10);
-  }
-  if (process.env.ACE_CONFIDENCE) {
-    config.defaultConfidence = parseFloat(process.env.ACE_CONFIDENCE);
-  }
+}
+
+function applyEnvVars(config: ACEConfig): ACEConfig {
+  const updated = { ...config };
   
-  // Apply flags (highest priority) - only override defined values
+  if (process.env.ACE_AGENTS_PATH) updated.agentsPath = process.env.ACE_AGENTS_PATH;
+  if (process.env.ACE_LOGS_DIR) updated.logsDir = process.env.ACE_LOGS_DIR;
+  if (process.env.ACE_INSIGHTS_PATH) updated.insightsPath = process.env.ACE_INSIGHTS_PATH;
+  if (process.env.ACE_TRACES_PATH) updated.tracesPath = process.env.ACE_TRACES_PATH;
+  if (process.env.ACE_MAX_DELTAS) updated.maxDeltas = parseInt(process.env.ACE_MAX_DELTAS, 10);
+  if (process.env.ACE_CONFIDENCE) updated.defaultConfidence = parseFloat(process.env.ACE_CONFIDENCE);
+  
+  return updated;
+}
+
+function applyFlags(config: ACEConfig, flags: Partial<ACEConfig>): ACEConfig {
+  const updated = { ...config };
   Object.keys(flags).forEach(key => {
     const value = flags[key as keyof ACEConfig];
     if (value !== undefined) {
-      (config as any)[key] = value;
+      (updated as any)[key] = value;
     }
   });
+  return updated;
+}
+
+function resolvePaths(config: ACEConfig, workingDir: string): ACEConfig {
+  return {
+    ...config,
+    agentsPath: resolve(workingDir, config.agentsPath),
+    logsDir: resolve(workingDir, config.logsDir),
+    insightsPath: resolve(workingDir, config.insightsPath),
+    tracesPath: resolve(workingDir, config.tracesPath),
+  };
+}
+
+export function loadConfig(flags: Partial<ACEConfig> = {}, cwd?: string): ACEConfig {
+  const workingDir = cwd || process.cwd();
   
-  // Resolve relative paths to absolute
-  config.agentsPath = resolve(workingDir, config.agentsPath);
-  config.logsDir = resolve(workingDir, config.logsDir);
-  config.insightsPath = resolve(workingDir, config.insightsPath);
-  config.tracesPath = resolve(workingDir, config.tracesPath);
+  let config: ACEConfig = { ...DEFAULT_CONFIG };
+  
+  const userConfig = loadUserConfig();
+  if (userConfig) config = { ...config, ...userConfig };
+  
+  const projectConfig = loadProjectConfig(workingDir);
+  if (projectConfig) config = { ...config, ...projectConfig };
+  
+  config = applyEnvVars(config);
+  config = applyFlags(config, flags);
+  config = resolvePaths(config, workingDir);
   
   return config;
 }
@@ -102,39 +113,8 @@ export function validateConfig(config: ACEConfig): { valid: boolean; errors: str
     errors.push('defaultConfidence must be between 0 and 1');
   }
 
-  // Validate MCP server config
-  if (config.mcpServers) {
-    const { enabled, disabled } = config.mcpServers;
-    if (enabled && disabled) {
-      const overlap = enabled.filter(server => disabled.includes(server));
-      if (overlap.length > 0) {
-        errors.push(`MCP servers cannot be both enabled and disabled: ${overlap.join(', ')}`);
-      }
-    }
-  }
-
   return {
     valid: errors.length === 0,
     errors
   };
-}
-
-export function getEffectiveMCPServers(config: ACEConfig, allAvailableServers: string[]): string[] {
-  if (!config.mcpServers) {
-    return allAvailableServers; // No filtering
-  }
-
-  const { enabled, disabled } = config.mcpServers;
-
-  if (enabled && enabled.length > 0) {
-    // Whitelist mode: only explicitly enabled servers
-    return enabled.filter(server => allAvailableServers.includes(server));
-  }
-
-  if (disabled && disabled.length > 0) {
-    // Blacklist mode: all servers except disabled ones
-    return allAvailableServers.filter(server => !disabled.includes(server));
-  }
-
-  return allAvailableServers;
 }

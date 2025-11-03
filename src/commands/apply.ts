@@ -85,7 +85,10 @@ export async function applyCommand(options: ApplyOptions): Promise<void> {
     } else {
       console.log('Dry Run - Preview:\n');
       console.log(serialized);
-      console.log(`\nWould accept ${result.accepted.length} deltas, reject ${result.rejected.length}`);
+      const summary =
+        `\nWould accept ${result.accepted.length} deltas, ` +
+        `reject ${result.rejected.length}`;
+      console.log(summary);
       
       if (result.rejected.length > 0) {
         console.log('\nRejected:');

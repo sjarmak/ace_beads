@@ -1,0 +1,4 @@
+src/lib/Generator.ts(52,5): error TS2304: Cannot find name 'configs'.
+src/lib/Generator.ts(120,15): error TS2339: Property 'updateBulletFeedbacks' does not exist on type 'Generator'.
+src/error-hooks.ts(10,5): warning TS6133: 'DEFAULT_FAIL_EXIT_CODE' is declared but its value is never read.
+src/lib/beads-client.ts(45,12): error TS2322: Type 'string | undefined' is not assignable to type 'string'.

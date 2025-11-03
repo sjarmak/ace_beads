@@ -1,14 +1,8 @@
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
+import { parseKnowledgeBullets, type ParsedBullet } from './knowledge-utils.js';
 
-export interface ParsedBullet {
-  id: string;
-  helpfulCount: number;
-  harmfulCount: number;
-  text: string;
-  lineNumber: number;
-  aggregatedFrom?: number;
-}
+export type { ParsedBullet };
 
 export interface DuplicateCluster {
   representative: ParsedBullet;
@@ -32,32 +26,13 @@ export interface ReviewReport {
   estimatedTokenSavings: number;
 }
 
-const BULLET_PATTERN = /^\s*\[Bullet #([a-zA-Z0-9]+), helpful:(\d+), harmful:(\d+)(?:, Aggregated from (\d+) instances)?\] (.+)$/;
 const DUPLICATE_SIMILARITY_THRESHOLD = 0.90;
 
 export class KnowledgeAnalyzer {
   async parseAgentsMd(filePath?: string): Promise<ParsedBullet[]> {
     const path = filePath || resolve(process.cwd(), 'AGENTS.md');
     const content = await readFile(path, 'utf-8');
-    const lines = content.split('\n');
-    const bullets: ParsedBullet[] = [];
-
-    lines.forEach((line, index) => {
-      const match = line.match(BULLET_PATTERN);
-      if (match) {
-        const [, id, helpful, harmful, aggregated, text] = match;
-        bullets.push({
-          id,
-          helpfulCount: parseInt(helpful, 10),
-          harmfulCount: parseInt(harmful, 10),
-          text: text.trim(),
-          lineNumber: index + 1,
-          aggregatedFrom: aggregated ? parseInt(aggregated, 10) : undefined,
-        });
-      }
-    });
-
-    return bullets;
+    return parseKnowledgeBullets(content);
   }
 
   detectDuplicates(bullets: ParsedBullet[]): DuplicateCluster[] {
@@ -172,7 +147,10 @@ export class KnowledgeAnalyzer {
     archivalCandidates: ArchivalCandidate[]
   ): number {
     const TOKENS_PER_BULLET = 50;
-    const duplicateSavings = duplicateClusters.reduce((sum, cluster) => sum + cluster.duplicates.length, 0);
+    const duplicateSavings = duplicateClusters.reduce(
+      (sum, cluster) => sum + cluster.duplicates.length,
+      0
+    );
     const archivalSavings = archivalCandidates.length;
     return (duplicateSavings + archivalSavings) * TOKENS_PER_BULLET;
   }

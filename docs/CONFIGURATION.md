@@ -79,7 +79,7 @@ export ACE_CONFIDENCE=0.9
 
 ```bash
 ace init --agents custom-agents.md --logs-dir my-logs
-ace update --max-deltas 5 --min-confidence 0.9
+ace learn --max-deltas 5 --min-confidence 0.9
 ```
 
 ## Complete Precedence Example
@@ -273,8 +273,7 @@ Restores your global Amp configuration from the most recent backup.
 Supported client paths:
 - `~/.config/amp/settings.json` (Amp)
 - `~/.config/amp/config.json` (Amp fallback)
-- `~/.config/cline/settings.json` (Cline/VS Code)
-- `~/Library/Application Support/Claude/claude_desktop_config.json` (Claude Desktop)
+
 
 ### Auto-Apply on Directory Change
 

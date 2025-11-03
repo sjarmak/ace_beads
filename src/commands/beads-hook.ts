@@ -45,8 +45,9 @@ ace capture \\
   --outcome $([ $TEST_EXIT -eq 0 ] && echo "success" || echo "failure") \\
   --json > /dev/null 2>&1 || true
 
-# Run learning cycle to extract insights and update knowledge base
-ace learn --beads "$BEAD_ID" --json > /dev/null 2>&1 || true
+# Run ACE canonical loop: Generator→Reflector→Curator→Evaluator
+# Online mode processes this single bead immediately with P→P' evaluation
+ace learn --beads "$BEAD_ID" --mode online --json > /dev/null 2>&1 || true
 
 # If tests failed, prevent close and create discovered issues
 if [ $TEST_EXIT -ne 0 ]; then
@@ -111,7 +112,8 @@ exit 0
         }
       }, null, 2));
     } else {
-      console.error(`❌ Error installing hooks: ${error instanceof Error ? error.message : String(error)}`);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error installing hooks: ${errMsg}`);
     }
     process.exit(1);
   }

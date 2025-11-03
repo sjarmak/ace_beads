@@ -17,12 +17,13 @@
     "build": "tsc",
     "build:cli": "bun build src/cli.ts --compile --outfile dist/ace",
     "build:binaries": "./scripts/build-binaries.sh",
-    "test": "vitest --run",
+    "test": "vitest --run --reporter=verbose --reporter=json --outputFile=.test-results.json",
     "posttest": "node scripts/posttest-hook.js",
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
     "cli": "node dist/src/cli.js",
+    "mcp:server": "node dist/src/mcp/server.js",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

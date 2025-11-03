@@ -9,13 +9,15 @@ const ONBOARD_AGENTS_MD = `# ACE Framework - Agent Onboarding Guide
 
 ## What is ACE?
 
-ACE (Agentic Context Engineering) is a **self-improving coding agent framework**. It learns from your execution feedback to continuously improve performance over time.
+ACE (Agentic Context Engineering) is a **self-improving coding agent framework**. ` +
+`It learns from your execution feedback to continuously improve performance over time.
 
 ### Core Concept
 
 When you complete work, ACE:
 1. **Captures** execution traces (build/test/lint results, errors, discovered issues)
-2. **Analyzes** patterns across those traces (what went wrong, what contexts would have prevented issues)
+2. **Analyzes** patterns across those traces ` +
+`(what went wrong, what contexts would have prevented issues)
 3. **Updates** this AGENTS.md file with learned patterns as actionable bullets
 4. **Applies** these bullets in future work to avoid repeating mistakes
 
@@ -64,7 +66,8 @@ This analyzes your traces and updates AGENTS.md with new patterns.
 ace get bullets --sections "TypeScript Patterns" --sort-by helpful --limit 10
 \`\`\`
 
-The patterns below are automatically managed - they accumulate over time based on real execution feedback.
+The patterns below are automatically managed - they accumulate over time ` +
+`based on real execution feedback.
 
 ## Integration with Beads (bd)
 
@@ -126,7 +129,9 @@ ace learn --beads bd-123
 \`\`\`
 
 After this, AGENTS.md will have a new bullet like:
-> [Bullet #abc123, helpful:0, harmful:0] TypeScript module imports require .js extension even for .ts files - Always use .js extensions in import statements when using ESM module resolution
+> [Bullet #abc123, helpful:0, harmful:0] TypeScript module imports require .js ` +
+`extension even for .ts files - Always use .js extensions in import statements ` +
+`when using ESM module resolution
 
 ## Learned Patterns (ACE-managed)
 <!-- This section is managed by the ACE Curator -->
@@ -150,7 +155,7 @@ After this, AGENTS.md will have a new bullet like:
 - \`ace init\` - Initialize ACE in a project
 - \`ace capture\` - Record execution trace
 - \`ace analyze\` - Extract patterns from traces
-- \`ace update\` - Apply insights to AGENTS.md
+- \`ace learn\` - Run full learning pipeline (analyze + apply + cleanup)
 - \`ace learn\` - Convenience: analyze → update
 - \`ace get insights\` - Query insights
 - \`ace get bullets\` - Query learned patterns
@@ -161,7 +166,8 @@ After this, AGENTS.md will have a new bullet like:
 1. **Always capture failures** - Don't let execution errors go unrecorded
 2. **Learn after completing work** - Run \`ace learn\` when finishing tasks
 3. **Consult patterns before work** - Check \`ace get bullets\` for relevant guidance
-4. **Link discovered issues** - When you find new work, capture it with \`--discovered\`
+4. **Link discovered issues** - When you find new work, ` +
+`capture it with \`--discovered\`
 5. **Trust the feedback loop** - The more you use ACE, the better it gets
 
 ## Files and Directories
@@ -186,7 +192,8 @@ Create \`.ace.json\` to customize paths:
 
 ---
 
-**Ready to start?** Run \`bd ready\` to see available work, or \`bd create "Task name"\` to create a new task.
+**Ready to start?** Run \`bd ready\` to see available work, ` +
+`or \`bd create "Task name"\` to create a new task.
 `;
 
 const SAMPLE_TASK_MD = `# Sample Task: Fix TypeScript Import Error
@@ -210,7 +217,8 @@ This is a sample task to demonstrate the ACE workflow.
 
 ## Expected Outcome
 
-After completing this, AGENTS.md should have a bullet about TypeScript imports requiring .js extensions.
+After completing this, AGENTS.md should have a bullet about TypeScript imports ` +
+`requiring .js extensions.
 `;
 
 export async function onboardCommand(options: { json?: boolean }): Promise<void> {

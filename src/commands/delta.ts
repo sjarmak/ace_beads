@@ -32,7 +32,9 @@ export async function deltaListCommand(options: DeltaListOptions): Promise<void>
   for (const delta of deltas) {
     console.log(`[${delta.id.slice(0, 8)}] ${delta.section}`);
     console.log(`  Op: ${delta.op}, Confidence: ${delta.metadata.confidence.toFixed(2)}`);
-    console.log(`  Content: ${delta.content.slice(0, 60)}${delta.content.length > 60 ? '...' : ''}`);
+    const contentPreview = delta.content.slice(0, 60);
+    const suffix = delta.content.length > 60 ? '...' : '';
+    console.log(`  Content: ${contentPreview}${suffix}`);
     console.log('');
   }
 }

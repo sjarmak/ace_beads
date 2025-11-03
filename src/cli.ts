@@ -8,18 +8,18 @@ import { initCommand } from './commands/init.js';
 import { onboardCommand } from './commands/onboard.js';
 import { captureCommand } from './commands/capture.js';
 import { analyzeCommand } from './commands/analyze.js';
-import { updateCommand } from './commands/update.js';
 import { learnCommand } from './commands/learn.js';
 import { getCommand } from './commands/get.js';
 import { traceListCommand, traceShowCommand } from './commands/trace.js';
 import { threadReportCommand } from './commands/thread.js';
+import { threadsListCommand, threadsShowCommand, threadsByBeadCommand } from './commands/threads.js';
 import { beadsHookInstallCommand } from './commands/beads-hook.js';
-import { ampConfigCommand } from './commands/amp-config.js';
+
 import { statusCommand } from './commands/status.js';
 import { applyCommand } from './commands/apply.js';
-import { sweepCommand } from './commands/sweep.js';
 import { deltaListCommand, deltaShowCommand, deltaRmCommand } from './commands/delta.js';
 import { doctorCommand } from './commands/doctor.js';
+import { insightAddCommand, postmortemCommand } from './commands/insight.js';
 import type { InitOptions } from './lib/mcp-types.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -143,30 +143,24 @@ program
     }
   });
 
-program
-  .command('update')
-  .description('Apply insights to AGENTS.md')
-  .option('--min-confidence <n>', 'Minimum confidence threshold', parseFloat, 0.8)
-  .option('--max-deltas <n>', 'Max updates per session', parseInt, 3)
-  .option('--dry-run', 'Preview without writing')
-  .option('--force-insight-ids <ids>', 'Force specific insights')
-  .option('--json', 'Output in JSON format')
-  .action(async (options) => {
-    try {
-      await updateCommand(options);
-    } catch (error) {
-      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
-      process.exit(3);
-    }
-  });
+
 
 program
   .command('learn')
-  .description('Convenience pipeline: analyze → update')
-  .option('--beads <ids>', 'Comma-separated bead IDs')
+  .description('ACE canonical loop: Generator→Reflector→Curator→Evaluator (P→P′)')
+  .option('--beads <ids>', 'Comma-separated bead IDs (required)')
+  .option(
+    '--mode <mode>',
+    'Execution mode: online (continual/single) or offline (multi-epoch)',
+    'online'
+  )
+  .option('--watch', 'Continual online mode - watch for new traces (requires single bead)')
+  .option('--epochs <n>', 'Number of epochs for offline mode (default: 3)', parseInt, 3)
   .option('--min-confidence <n>', 'Minimum confidence threshold', parseFloat, 0.8)
   .option('--max-deltas <n>', 'Max updates per session', parseInt, 3)
   .option('--dry-run', 'Preview without writing')
+  .option('--skip-cleanup', 'Skip trace cleanup after learning')
+  .option('--use-legacy', 'Use legacy analyze+apply pipeline instead of ACELoop')
   .option('--json', 'Output in JSON format')
   .action(async (options) => {
     try {
@@ -302,6 +296,52 @@ threadCmd
     }
   });
 
+const threadsCmd = program
+  .command('threads')
+  .description('Thread indexing and querying');
+
+threadsCmd
+  .command('list')
+  .description('List all indexed threads')
+  .option('--json', 'Output in JSON format')
+  .option('--limit <n>', 'Max threads to show', parseInt, 20)
+  .option('--tags <tags>', 'Filter by tags (comma-separated)')
+  .option('--component <name>', 'Filter by component name')
+  .action(async (options) => {
+    try {
+      await threadsListCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+threadsCmd
+  .command('show <thread-id>')
+  .description('Show details for a specific thread')
+  .option('--json', 'Output in JSON format')
+  .action(async (threadId, options) => {
+    try {
+      await threadsShowCommand(threadId, options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+threadsCmd
+  .command('by-bead <bead-id>')
+  .description('Show threads associated with a bead')
+  .option('--json', 'Output in JSON format')
+  .action(async (beadId, options) => {
+    try {
+      await threadsByBeadCommand(beadId, options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
 const beadsCmd = program
   .command('beads')
   .description('Beads integration commands');
@@ -328,32 +368,6 @@ beadsCmd
         console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
       }
       process.exit(1);
-    }
-  });
-
-program
-  .command('amp-config')
-  .description('Manage Amp configuration with directory-level overrides')
-  .option('--apply', 'Apply project config to client configuration')
-  .option('--list', 'List current configuration')
-  .option('--restore', 'Restore global default configuration from backup')
-  .option('--json', 'Output in JSON format')
-  .option('--verbose', 'Show detailed output')
-  .action(async (options) => {
-    try {
-      ampConfigCommand(options);
-    } catch (error) {
-      if (options.json) {
-        console.error(JSON.stringify({
-          error: {
-            code: 'MCP_CONFIG_ERROR',
-            message: error instanceof Error ? error.message : String(error)
-          }
-        }, null, 2));
-      } else {
-        console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
-      }
-      process.exit(3);
     }
   });
 
@@ -386,20 +400,7 @@ program
     }
   });
 
-program
-  .command('sweep')
-  .description('Offline learning from historical beads')
-  .option('--range <range>', 'Bead ID range (e.g., bd-100..bd-200)')
-  .option('--labels <labels>', 'Filter by labels (comma-separated)', 'ace,reflect')
-  .option('--json', 'Output in JSON format')
-  .action(async (options) => {
-    try {
-      await sweepCommand(options);
-    } catch (error) {
-      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
-      process.exit(3);
-    }
-  });
+
 
 const deltaCmd = program
   .command('delta')
@@ -451,6 +452,46 @@ program
   .action(async (options) => {
     try {
       await doctorCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+const insightCmd = program
+  .command('insight')
+  .description('Manual insight capture and analysis');
+
+insightCmd
+  .command('add')
+  .description('Manually add an insight to the knowledge base')
+  .requiredOption('--pattern <text>', 'Pattern or lesson learned')
+  .option('--evidence <items>', 'Comma-separated evidence (file:line, URLs, etc.)')
+  .option('--confidence <n>', 'Confidence level (0.0-1.0)', parseFloat, 0.9)
+  .option('--section <name>', 'AGENTS.md section', 'Manual Insights')
+  .option('--bead <id>', 'Bead ID (auto-detects from env/branch if not provided)')
+  .option('--thread <id>', 'Thread ID (auto-detects from AMP_THREAD_ID if not provided)')
+  .option('--interactive', 'Show preview and prompt for approval')
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      await insightAddCommand(options);
+    } catch (error) {
+      console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(3);
+    }
+  });
+
+insightCmd
+  .command('postmortem')
+  .description('Extract insights from thread history (requires bead 270)')
+  .requiredOption('--bead <id>', 'Bead ID to analyze')
+  .option('--min-confidence <n>', 'Minimum confidence threshold', parseFloat, 0.8)
+  .option('--dry-run', 'Preview without saving')
+  .option('--json', 'Output in JSON format')
+  .action(async (options) => {
+    try {
+      await postmortemCommand(options);
     } catch (error) {
       console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
       process.exit(3);
